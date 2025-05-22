@@ -1,0 +1,631 @@
+{
+  "name": "BlogNavon",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        0
+      ],
+      "id": "372ad4f4-fcba-4577-8405-6df7565fe7a6",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "youtubeURL": "https://www.youtube.com/watch?v=2o5V6SVl7k0&t=728s"
+      },
+      "type": "n8n-nodes-youtube-transcript-api.youtubeTranscriptApi",
+      "typeVersion": 1,
+      "position": [
+        180,
+        0
+      ],
+      "id": "4f86e183-0e8c-4954-b0cc-589c1f15eac6",
+      "name": "Youtube Transcript"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-thinking-exp",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        360,
+        240
+      ],
+      "id": "b1b5d4ce-f67a-45a0-befe-3acbfc004c2b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OybK4iH6GHqqdID1",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "\n   {\n     \"title\":    \"<Hebrew title string>\",\n     \"description\": \"<1-3 sentence Hebrew excerpt that entices clicks and contains the main keyword>\",\n     \"content\":  \"<RAW HTML string of the full post in Hebrew>\",\n     \"tags\":     [\"<keyword-1>\", \"<keyword-2>\", \"...\"],\n     \"slug\":     \"<kebab-case-slug-in-English-extracted-or-transliterated-from-the-Hebrew-title>\"\n   }\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        540,
+        240
+      ],
+      "id": "65fa0e88-4d6e-421d-b861-1930d3400b20",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content }}",
+        "options": {
+          "systemMessage": "You are a visionary art-director and prompt-engineer.\n\n## Context\nYou will receive a JSON object containing:\n- \"content\": full article in raw HTML (Hebrew)\n\n## Goal\nCreate one imaginative, high-quality prompt (in **English**) for an AI text-to-image model that will generate the blog’s **featured image**.\n\n### Requirements\n1. **Concept & Storytelling**  \n   * Capture the post’s core topic, mood, and intended reader emotion.  \n   * Convey the benefit or insight visually—think symbolism or metaphor when helpful.\n\n2. **Visual Directives**  \n   * Specify genre/style (e.g., “cinematic photo”, “clean flat illustration”, “dreamy watercolor”).  \n   * Note key subjects, composition hints (foreground/background, focal point), lighting, and color palette.  \n   * Prefer landscape orientation and a 3:2 aspect (≈ 1200 × 800 px).  \n   * Include “high resolution” or “ultra-detailed” if appropriate.\n\n3. **Clarity & Brevity**  \n   * One concise sentence (≈ 15–60 words).  \n   * Use commas/parentheses—not long lists—to keep flow natural.\n\n4. **Prohibitions**  \n   * Do **not** add any text to appear inside the image.  \n   * Do **not** reference YouTube, the channel, HTML, SEO, or technical instructions.  \n   * No watermarks, no brand logos, no copyrighted content.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        980,
+        0
+      ],
+      "id": "402ac0d1-2de1-4ce3-822a-a6393c704b57",
+      "name": "Generate Image Prompt",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        220
+      ],
+      "id": "4c8e66db-a151-4859-bd46-2fb6a6e908ca",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OybK4iH6GHqqdID1",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.getimg.ai/v1/flux-schnell/text-to-image",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "width",
+              "value": "1280"
+            },
+            {
+              "name": "height",
+              "value": "720"
+            },
+            {
+              "name": "seed",
+              "value": "555"
+            },
+            {
+              "name": "steps",
+              "value": "4"
+            },
+            {
+              "name": "output_format",
+              "value": "jpeg"
+            },
+            {
+              "name": "response_format",
+              "value": "b64"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        0
+      ],
+      "id": "93237d5c-3b69-4de7-a2fb-5dc0c0ff9974",
+      "name": "GetImg",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "V4SkbO9JBxkX6i5B",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=YouTube transcript:  {{ $json.transcript }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert Hebrew copy-writer, SEO strategist, and conversion specialist.\n\n## Task\nTurn the *supplied YouTube transcript* (given by the user in a separate message) into an engaging, fully-structured blog post **in Hebrew**, formatted as raw HTML.\n\n### Must-haves\n1. **Language & Tone**  \n   * Write fluent, natural Hebrew that sounds like a real person, not a translation.  \n   * Aim for warmth, clarity, and authority that motivates the reader to take the intended action.\n\n2. **SEO & Conversion**  \n   * Craft an H1 title that contains the main keyword near the beginning.  \n   * Use meaningful sub-headings (H2/H3) that weave in secondary keywords.  \n   * Sprinkle keywords organically—no stuffing.  \n   * Include at least one call-to-action (CTA) element (e.g., a button or bold link).  \n   * Use ordered / unordered lists, bold text, and short paragraphs to improve readability.  \n\n3. **Content Constraints**  \n   * **Do NOT** mention, quote, or reference the YouTube channel, the video title, video URL, like/subscribe requests, or any channel credits.  \n   * **Do NOT** insert any tracking scripts, iframe embeds, or analytics code.  \n   * The HTML must be valid and *not* wrapped in a `<html>` or `<body>` tag—just the article section.  \n\noutput:\n {\n     \"title\":    \"<Hebrew title string>\",\n     \"description\": \"<1-3 sentence Hebrew excerpt that entices clicks and contains the main keyword>\",\n     \"content\":  \"<RAW HTML string of the full post in Hebrew>\",\n     \"tags\":     [\"<keyword-1>\", \"<keyword-2>\", \"...\"],\n     \"slug\":     \"<kebab-case-slug-in-English-extracted-or-transliterated-from-the-Hebrew-title>\"\n   }"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        360,
+        0
+      ],
+      "id": "30f39f5e-c0d9-42a4-bbfe-bf6399527c76",
+      "name": "Write Post"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "image",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1560,
+        0
+      ],
+      "id": "c93283a4-c291-491d-a408-35b48b685bc6",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "content": "## Generate Image",
+        "height": 660,
+        "width": 900,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        940,
+        -140
+      ],
+      "id": "d89c9c79-fc85-4906-a13e-509140c28345",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "19JyGV3QdQii7nO_v7KDRprvJf6GTkCH4",
+          "mode": "list",
+          "cachedResultName": "featuredImages",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/19JyGV3QdQii7nO_v7KDRprvJf6GTkCH4"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1200,
+        240
+      ],
+      "id": "c87aa3d9-29cf-4ed3-8d65-9900f26d04be",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YQG6aPq5kd6bDzLd",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "reader",
+            "type": "anyone",
+            "allowFileDiscovery": true
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1460,
+        240
+      ],
+      "id": "6291ce7b-659f-4b30-b4b2-8e908ccd79c8",
+      "name": "Google Drive1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YQG6aPq5kd6bDzLd",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Transcribe & Write Post",
+        "height": 660,
+        "width": 880,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -140
+      ],
+      "id": "86abd070-1f20-4f15-8205-a4ea5b82d131",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5daa699-dfbd-4fc9-ae4b-f7476fded852",
+              "name": "featuredImage",
+              "value": "={{ $('Google Drive').item.json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1680,
+        240
+      ],
+      "id": "e8b7f84b-6ee7-4939-be51-5aba60a9e732",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eafcbf50-36c4-4f3d-80e3-238cea8b5c83",
+              "name": "content",
+              "value": "={{ $json.output.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        740,
+        0
+      ],
+      "id": "54fd38e3-23dc-4f04-89d1-19a1b4ca3be8",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6860c23-a736-4932-84d9-f52725f74135",
+              "name": "title",
+              "value": "={{ $json.output.title }}",
+              "type": "string"
+            },
+            {
+              "id": "7ddf6cfb-60ef-47a7-8480-0c1a6e7b598f",
+              "name": "excerpt",
+              "value": "={{ $json.output.description }}",
+              "type": "string"
+            },
+            {
+              "id": "11111ac4-68db-4e25-8d36-ba8a488cdc51",
+              "name": "content",
+              "value": "={{ $json.output.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        700,
+        360
+      ],
+      "id": "572260d9-9026-46dc-aef5-26dffc4b0cee",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://blognavon.com/api/webhook/",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ $json.title }}"
+            },
+            {
+              "name": "excerpt",
+              "value": "={{ $json.excerpt }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.content }}"
+            },
+            {
+              "name": "featuredImage",
+              "value": "={{ $json.featuredImage }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        580
+      ],
+      "id": "84c91f29-060a-46aa-aae0-02f9cfacd2d4",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node Script (Corrected)\n// Input: Assumes the input is an array 'items' like:\n//        [ {title, excerpt, content}, {featuredImage} ]\n// Output: A single item with a 'json' property containing the merged object:\n//         { title, excerpt, content, featuredImage }\n\n// Get the input data (n8n provides it as an array of items)\nconst items = $input.all();\n\n// Check if the input structure is an array with at least two items\nif (!Array.isArray(items) || items.length < 2) {\n  throw new Error(\"Unexpected input data structure. Expected an array with at least two objects.\");\n}\n\n// Extract the two objects directly from the input array\nconst postDetails = items[0].json; // Access the json property of the first item\nconst imageDetails = items[1].json; // Access the json property of the second item\n\n// Validate the objects and their contents\nif (!postDetails || typeof postDetails !== 'object' || !imageDetails || typeof imageDetails !== 'object') {\n   throw new Error(\"Input items are not valid objects or missing 'json' property.\");\n}\nif (!('title' in postDetails) || !('content' in postDetails)) { // Excerpt is optional\n   throw new Error(\"First object missing 'title' or 'content'.\");\n}\nif (!('featuredImage' in imageDetails)) {\n   throw new Error(\"Second object missing 'featuredImage'.\");\n}\n\n// Merge the data into a single object\nconst outputJson = {\n  title: postDetails.title,\n  excerpt: postDetails.excerpt || '', // Use excerpt if present, otherwise empty string\n  content: postDetails.content,\n  featuredImage: imageDetails.featuredImage\n};\n\n// Return the merged object in the standard n8n format\nreturn [{ json: outputJson }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        580
+      ],
+      "id": "5f6b95af-b5b9-4c06-823f-c3489d65c9a2",
+      "name": "Code"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1300,
+        580
+      ],
+      "id": "66078488-8439-4755-b9ca-46c95814dbab",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Youtube Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Youtube Transcript": {
+      "main": [
+        [
+          {
+            "node": "Write Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write Post",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Write Post",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Image Prompt",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image Prompt": {
+      "main": [
+        [
+          {
+            "node": "GetImg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Post": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetImg": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Google Drive1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Generate Image Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b43c12f3-5eb0-4b42-8918-d9daf83f2923",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4deab91ba1e4805384a24df7c256b893c98b1a524860431adb1ce1240b8b9ee2"
+  },
+  "id": "zEWoYVBbAk9L3Ue9",
+  "tags": []
+}

@@ -1,69 +1,65 @@
-import React from 'react';
+import React from "react"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { formatDate } from "@/lib/utils"
 import { CommentSection } from "@/components/comment-section"
 import { EditPostButton } from "@/components/edit-post-button"
 import { Comment } from "@/lib/types" // Import Comment type
 import { LoadingReset } from "@/components/loading-reset"
-import {
-  ArrowLeft,
-  ArrowRight,
-  Facebook,
-  Instagram,
-} from "lucide-react"
+import { ArrowLeft, ArrowRight, Facebook, Instagram } from "lucide-react"
 import Link from "next/link"
-import { WhatsappIcon } from "@/components/svg/whatsapp";
-import { TwitterXIcon } from "@/components/svg/twitter-x";
-import { ClientFeaturedImage } from "@/components/client-featured-image";
+import { WhatsappIcon } from "@/components/svg/whatsapp"
+import { TwitterXIcon } from "@/components/svg/twitter-x"
+import { ClientFeaturedImage } from "@/components/client-featured-image"
 import { notFound, redirect } from "next/navigation"
 import { Metadata } from "next"
 import { isAdmin } from "@/lib/supabase/server-auth-utils"
 
 // Helper function to fetch a post by slug from Supabase
-async function getPostBySlugSupabase(slug: string, includeAllStatuses: boolean = false) {
+async function getPostBySlugSupabase(
+  slug: string,
+  includeAllStatuses: boolean = false
+) {
   try {
-    console.log(`Fetching post with slug: ${slug}, includeAllStatuses: ${includeAllStatuses}`);
-    const supabase = await createServerSupabaseClient();
-    
+    console.log(
+      `Fetching post with slug: ${slug}, includeAllStatuses: ${includeAllStatuses}`
+    )
+    const supabase = await createServerSupabaseClient()
+
     if (!supabase) {
-      console.error("Failed to create Supabase client");
-      return null;
+      console.error("Failed to create Supabase client")
+      return null
     }
-    
+
     // Build query based on admin status
-    let query = supabase
-      .from("posts")
-      .select("*")
-      .eq("slug", slug)
-      .limit(1);
-    
+    let query = supabase.from("posts").select("*").eq("slug", slug).limit(1)
+
     // Only include published posts for non-admin users
     if (!includeAllStatuses) {
-      query = query.eq("status", "published");
+      query = query.eq("status", "published")
     }
-    
-    const { data, error } = await query;
-    
+
+    const { data, error } = await query
+
     if (error) {
-      console.error("Error fetching post from Supabase:", error);
-      return null;
+      console.error("Error fetching post from Supabase:", error)
+      return null
     }
-    
+
     // Return null if no post found
     if (!data || data.length === 0) {
-      console.log(`No post found with slug: ${slug}`);
-      return null;
+      console.log(`No post found with slug: ${slug}`)
+      return null
     }
-    
-    console.log(`Successfully fetched post: ${data[0].title}`);
-    
+
+    console.log(`Successfully fetched post: ${data[0].title}`)
+
     // Extract the post
-    const supabasePost = data[0];
-    
+    const supabasePost = data[0]
+
     // Need to fetch adjacent posts for navigation
-    let previousPostSlug = null;
-    let nextPostSlug = null;
-    
+    let previousPostSlug = null
+    let nextPostSlug = null
+
     try {
       // Get previous post (older than current post)
       const { data: prevData } = await supabase
@@ -72,8 +68,8 @@ async function getPostBySlugSupabase(slug: string, includeAllStatuses: boolean =
         .lt("created_at", supabasePost.created_at)
         .eq("status", "published") // Always filter by published for adjacent posts
         .order("created_at", { ascending: false })
-        .limit(1);
-        
+        .limit(1)
+
       // Get next post (newer than current post)
       const { data: nextData } = await supabase
         .from("posts")
@@ -81,19 +77,19 @@ async function getPostBySlugSupabase(slug: string, includeAllStatuses: boolean =
         .gt("created_at", supabasePost.created_at)
         .eq("status", "published") // Always filter by published for adjacent posts
         .order("created_at", { ascending: true })
-        .limit(1);
-      
+        .limit(1)
+
       if (prevData && prevData.length > 0) {
-        previousPostSlug = prevData[0].slug;
+        previousPostSlug = prevData[0].slug
       }
-      
+
       if (nextData && nextData.length > 0) {
-        nextPostSlug = nextData[0].slug;
+        nextPostSlug = nextData[0].slug
       }
     } catch (error) {
-      console.error("Error fetching adjacent posts:", error);
+      console.error("Error fetching adjacent posts:", error)
     }
-    
+
     // Transform the post to match expected format
     return {
       id: supabasePost.id,
@@ -109,11 +105,11 @@ async function getPostBySlugSupabase(slug: string, includeAllStatuses: boolean =
       tags: supabasePost.tags,
       category: supabasePost.category,
       previousPostSlug,
-      nextPostSlug
-    };
+      nextPostSlug,
+    }
   } catch (error) {
-    console.error("Unexpected error in getPostBySlugSupabase:", error);
-    return null;
+    console.error("Unexpected error in getPostBySlugSupabase:", error)
+    return null
   }
 }
 
@@ -157,7 +153,7 @@ export async function generateMetadata({
         ],
         url: url,
         type: "article",
-        siteName: "בלוגנבון",
+        siteName: "בְּלוֹגנָבוֹן",
       },
       twitter: {
         card: "summary_large_image",
@@ -172,8 +168,8 @@ export async function generateMetadata({
   } catch (error) {
     console.error("Error generating metadata:", error)
     return {
-      title: "בלוגנבון",
-      description: "בלוג על בינה מלאכותית ולמידת מכונה",
+      title: "בְּלוֹגנָבוֹן",
+      description: "בְּלוֹג על בינה מלאכותית ולמידת מכונה",
     }
   }
 }
@@ -202,7 +198,6 @@ export default async function BlogPost({ params }: PageProps) {
       console.log(`Blog post not found for slug: ${resolvedParams.slug}`)
       notFound()
     }
-
 
     // Double-check: if somehow a draft post is returned and user is not admin
     if (post.status === "draft" && !userIsAdmin) {
@@ -316,20 +311,20 @@ export default async function BlogPost({ params }: PageProps) {
                 : "bg-muted flex items-center justify-center"
             }`}
           >
-                {post.featuredImage?.trim() ? (
+            {post.featuredImage?.trim() ? (
               <>
                 {/* Using ClientFeaturedImage component with error boundary */}
                 <div className="relative w-full h-full">
                   {/* Fallback rendering when client component fails */}
                   <div className="absolute inset-0 z-0">
-                    <div 
-                      className="w-full h-full bg-cover bg-center" 
+                    <div
+                      className="w-full h-full bg-cover bg-center"
                       style={{ backgroundImage: `url(${post.featuredImage})` }}
                     />
                   </div>
-                  
+
                   {/* Client component for enhanced functionality */}
-                  <ClientFeaturedImage 
+                  <ClientFeaturedImage
                     src={post.featuredImage}
                     alt={post.title}
                     postId={post.id}
@@ -338,7 +333,9 @@ export default async function BlogPost({ params }: PageProps) {
                 </div>
               </>
             ) : (
-              <span className="text-accent" dir="rtl" lang="he">תמונה לא זמינה</span>
+              <span className="text-accent" dir="rtl" lang="he">
+                תמונה לא זמינה
+              </span>
             )}
           </div>
         </div>

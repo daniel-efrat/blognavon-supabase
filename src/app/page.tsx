@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import Link from 'next/link';
 import Image from 'next/image';
 import SearchableGrid from "@/components/searchable-grid";
+import HeroSection from "@/components/HeroSection";
 
 interface Post {
   id: string | number;
@@ -31,6 +32,7 @@ export default async function HomePage() {
 
   return (
     <main className="container mx-auto p-4">
+      <HeroSection/>
       <h1 className="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-white">פוסטים אחרונים</h1>
 
       <SearchableGrid/>

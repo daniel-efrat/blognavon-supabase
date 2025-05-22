@@ -1,35 +1,35 @@
-"use client";
+"use client"
 
-import { usePathname } from "next/navigation";
-import { m } from "framer-motion";
-import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
-import { useAuth } from "@/lib/auth-hooks.tsx";
-import { LazyMotion, domAnimation } from "framer-motion";
+import { usePathname } from "next/navigation"
+import { m } from "framer-motion"
+import Link from "next/link"
+import Image from "next/image"
+import { Button } from "@/components/ui/button"
+import { ModeToggle } from "@/components/mode-toggle"
+import { useAuth } from "@/lib/auth-hooks.tsx"
+import { LazyMotion, domAnimation } from "framer-motion"
 
 export default function Header() {
-  const { user, isAdmin, signOut } = useAuth();
-  const pathname = usePathname();
+  const { user, isAdmin, signOut } = useAuth()
+  const pathname = usePathname()
 
   // Check if the current route is the landing page
-  const isLandingPage = pathname === "/landing";
+  const isLandingPage = pathname === "/landing"
 
   // Define the width of the animated border based on the route
   const getRouteWidth = (route: string): string => {
     if (route.startsWith("/admin")) {
-      return "60px"; // Width for all admin routes
+      return "60px" // Width for all admin routes
     }
 
     const routeWidths: { [key: string]: string } = {
       "/": "60px", // Width for the home page
       "/login": "60px", // Width for the login page
       "/signup": "60px", // Width for the signup page
-    };
+    }
 
-    return routeWidths[route] || "0px"; // Default to 0 if not found
-  };
+    return routeWidths[route] || "0px" // Default to 0 if not found
+  }
 
   return (
     <LazyMotion features={domAnimation}>
@@ -66,8 +66,8 @@ export default function Header() {
                     height={60}
                   />
                   <span className="text-xl font-bold">
-                    <span className="text-[#06B8B7] no-underline">בלוג</span>
-                    <span className="text-[#FB8524] ">נבון</span>
+                    <span className="text-accent no-underline">בְּלוֹג</span>
+                    <span className="text-destructive ">נָבוֹן</span>
                   </span>
                 </Link>
               </m.div>
@@ -136,5 +136,5 @@ export default function Header() {
         </m.header>
       )}
     </LazyMotion>
-  );
+  )
 }

@@ -9,5 +9,7 @@ export interface Post {
   updatedAt: string | Date // Or just Date
   status: "published" | "draft" | "archived"
   featuredImage?: string
-  // Add any other fields your posts might have, e.g., content
+  content?: string
+  category?: string
+  tags?: string[]
 }

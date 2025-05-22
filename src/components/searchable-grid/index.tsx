@@ -1,44 +1,33 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import React, { useState, useEffect, useMemo, useCallback } from "react"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationEllipsis,
-} from "@/components/ui/pagination";
-import {
-  Search,
-  X,
-  AlertCircle,
-  ChevronRight,
-  ChevronLeft,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getPublishedPosts } from "@/lib/supabase/posts";
-import { Post } from "@/lib/types";
-import Link from "next/link";
-import Image from "next/image";
-import { debounce } from "lodash";
-import { formatDate } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import { LazyMotion, domAnimation, m } from "framer-motion";
-import { PostCard } from "./post-card";
+} from "@/components/ui/pagination"
+import { Search, X, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { getPublishedPosts } from "@/lib/supabase/posts"
+import { Post } from "@/lib/types"
+import Link from "next/link"
+import Image from "next/image"
+import { debounce } from "lodash"
+import { formatDate } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import { LazyMotion, domAnimation, m } from "framer-motion"
+import { PostCard } from "./post-card"
 
 interface SearchableGridProps {
-  initialPosts?: Post[];
-  postsPerPage?: number;
-  showDevTools?: boolean;
-  onDebugInfoUpdate?: (debugInfo: any) => void;
+  initialPosts?: Post[]
+  postsPerPage?: number
+  showDevTools?: boolean
+  onDebugInfoUpdate?: (debugInfo: any) => void
 }
 
 export default function SearchableGrid({
@@ -48,14 +37,14 @@ export default function SearchableGrid({
   onDebugInfoUpdate = () => {},
 }: SearchableGridProps) {
   // Core state
-  const [allPosts, setAllPosts] = useState<Post[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [allPosts, setAllPosts] = useState<Post[]>([])
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
 
   // UI state
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
 
   // Debug state
   const [debugInfo, setDebugInfo] = useState({
@@ -65,12 +54,12 @@ export default function SearchableGrid({
     totalPages: 1,
     searchQuery: "",
     timeLastUpdated: "",
-  });
+  })
 
   // Update debug info - memoized function with EMPTY dependencies to break cycles
   const updateDebugInfo = useCallback(
     (all: Post[], filtered: Post[], page: number, query: string) => {
-      const totalPages = Math.ceil(filtered.length / postsPerPage);
+      const totalPages = Math.ceil(filtered.length / postsPerPage)
 
       const newDebugInfo = {
         allPostsCount: all.length,
@@ -79,215 +68,168 @@ export default function SearchableGrid({
         totalPages,
         searchQuery: query,
         timeLastUpdated: new Date().toISOString(),
-      };
+      }
 
-      setDebugInfo(newDebugInfo);
+      setDebugInfo(newDebugInfo)
       if (onDebugInfoUpdate) {
-        onDebugInfoUpdate(newDebugInfo);
+        onDebugInfoUpdate(newDebugInfo)
       }
       // IMPORTANT: Empty dependency array to break the cycle
     },
     []
-  );
+  )
 
   // Load posts only on initial mount or when initialPosts actually changes
   // Important: Using a ref for comparison to avoid infinite loops
-  const initialPostsStringified = JSON.stringify(initialPosts);
+  const initialPostsStringified = JSON.stringify(initialPosts)
 
   useEffect(() => {
     async function loadPosts() {
       try {
-        setIsLoading(true);
-        setError(null);
+        setIsLoading(true)
+        setError(null)
 
-        console.log("[SearchableGrid] Loading posts...");
+        console.log("[SearchableGrid] Loading posts...")
 
         // If initialPosts are provided, use them directly
         if (initialPosts && initialPosts.length > 0) {
           console.log(
             `[SearchableGrid] Using ${initialPosts.length} provided posts`
-          );
-          setAllPosts(initialPosts);
-          setFilteredPosts(initialPosts);
-          updateDebugInfo(initialPosts, initialPosts, 1, "");
-          setIsLoading(false);
-          return;
+          )
+          setAllPosts(initialPosts)
+          setFilteredPosts(initialPosts)
+          updateDebugInfo(initialPosts, initialPosts, 1, "")
+          setIsLoading(false)
+          return
         }
 
         // If no initialPosts, check the cache
-        const cachedPosts = localStorage.getItem("cachedPosts");
-        const cachedTime = localStorage.getItem("cachedTime");
+        const cachedPosts = localStorage.getItem("cachedPosts")
+        const cachedTime = localStorage.getItem("cachedTime")
 
         if (cachedPosts && cachedTime) {
-          const timeElapsed = Date.now() - parseInt(cachedTime);
+          const timeElapsed = Date.now() - parseInt(cachedTime)
           // Use cache if it's less than 5 minutes old
           if (timeElapsed < 5 * 60 * 1000) {
-            console.log("[SearchableGrid] Using cached posts");
-            const posts = JSON.parse(cachedPosts);
-            setAllPosts(posts);
-            setFilteredPosts(posts);
-            updateDebugInfo(posts, posts, 1, "");
-            setIsLoading(false);
-            return;
+            console.log("[SearchableGrid] Using cached posts")
+            const posts = JSON.parse(cachedPosts)
+            setAllPosts(posts)
+            setFilteredPosts(posts)
+            updateDebugInfo(posts, posts, 1, "")
+            setIsLoading(false)
+            return
           }
         }
 
         // Cache miss or expired, fetch from Supabase
-        console.log("[SearchableGrid] Fetching posts from Supabase");
-        const fetchedPosts = await getPublishedPosts();
-        console.log(`[SearchableGrid] Fetched ${fetchedPosts.length} posts`);
+        console.log("[SearchableGrid] Fetching posts from Supabase")
+        const fetchedPosts = await getPublishedPosts()
+        console.log(`[SearchableGrid] Fetched ${fetchedPosts.length} posts`)
 
         // Cache the results
-        localStorage.setItem("cachedPosts", JSON.stringify(fetchedPosts));
-        localStorage.setItem("cachedTime", Date.now().toString());
+        localStorage.setItem("cachedPosts", JSON.stringify(fetchedPosts))
+        localStorage.setItem("cachedTime", Date.now().toString())
 
-        setAllPosts(fetchedPosts);
-        setFilteredPosts(fetchedPosts);
-        updateDebugInfo(fetchedPosts, fetchedPosts, 1, "");
-        setIsLoading(false);
+        setAllPosts(fetchedPosts)
+        setFilteredPosts(fetchedPosts)
+        updateDebugInfo(fetchedPosts, fetchedPosts, 1, "")
+        setIsLoading(false)
       } catch (err: any) {
-        console.error("Error loading posts:", err);
-        setError(err.message || "Failed to load posts");
-        setIsLoading(false);
+        console.error("Error loading posts:", err)
+        setError(err.message || "Failed to load posts")
+        setIsLoading(false)
       }
     }
 
-    loadPosts();
+    loadPosts()
     // Only run when initialPosts stringified value changes
-  }, [initialPostsStringified]);
+  }, [initialPostsStringified])
 
   // Handle search input change with debounce
   const debouncedSearch = useMemo(
     () =>
       debounce((query: string) => {
-        console.log(`[SearchableGrid] Searching for: "${query}"`);
+        console.log(`[SearchableGrid] Searching for: "${query}"`)
 
         if (!query.trim()) {
           // If search is cleared, show all posts
           console.log(
             `[SearchableGrid] Empty search, showing all ${allPosts.length} posts`
-          );
-          setFilteredPosts(allPosts);
-          updateDebugInfo(allPosts, allPosts, 1, "");
-          setCurrentPage(1);
-          return;
+          )
+          setFilteredPosts(allPosts)
+          updateDebugInfo(allPosts, allPosts, 1, "")
+          setCurrentPage(1)
+          return
         }
 
-        const lowerQuery = query.toLowerCase();
+        const lowerQuery = query.toLowerCase()
         const results = allPosts.filter((post) => {
-          const title = post.title?.toLowerCase() || "";
-          const excerpt = post.excerpt?.toLowerCase() || "";
-          const content = post.content?.toLowerCase() || "";
+          const title = post.title?.toLowerCase() || ""
+          const excerpt = post.excerpt?.toLowerCase() || ""
+          const content = post.content?.toLowerCase() || ""
 
           return (
             title.includes(lowerQuery) ||
             excerpt.includes(lowerQuery) ||
             content.includes(lowerQuery)
-          );
-        });
+          )
+        })
 
         console.log(
           `[SearchableGrid] Search "${query}" found ${results.length} results`
-        );
+        )
 
         // Explicitly force a render by creating a new array
-        setFilteredPosts([...results]);
-        setCurrentPage(1); // Reset to first page on new search
-        updateDebugInfo(allPosts, results, 1, query);
+        setFilteredPosts([...results])
+        setCurrentPage(1) // Reset to first page on new search
+        updateDebugInfo(allPosts, results, 1, query)
       }, 300),
     [allPosts, updateDebugInfo]
-  );
+  )
 
   // Handle search input
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newQuery = e.target.value;
-    console.log(`[SearchableGrid] Search input changed to: "${newQuery}"`);
-    setSearchQuery(newQuery);
-    debouncedSearch(newQuery);
-  };
+    const newQuery = e.target.value
+    console.log(`[SearchableGrid] Search input changed to: "${newQuery}"`)
+    setSearchQuery(newQuery)
+    debouncedSearch(newQuery)
+  }
 
   // Clear search
   const handleClearSearch = () => {
-    console.log(`[SearchableGrid] Clearing search`);
-    setSearchQuery("");
-    setFilteredPosts([...allPosts]); // Force a new array reference
-    setCurrentPage(1);
-    updateDebugInfo(allPosts, allPosts, 1, "");
-  };
+    console.log(`[SearchableGrid] Clearing search`)
+    setSearchQuery("")
+    setFilteredPosts([...allPosts]) // Force a new array reference
+    setCurrentPage(1)
+    updateDebugInfo(allPosts, allPosts, 1, "")
+  }
 
   // Calculate pagination - use useMemo to avoid recalculating on every render
   const { totalPages, currentPosts } = useMemo(() => {
     console.log(
       `[SearchableGrid] Calculating pagination for ${filteredPosts.length} posts`
-    );
-    const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
-    const startIndex = (currentPage - 1) * postsPerPage;
+    )
+    const totalPages = Math.ceil(filteredPosts.length / postsPerPage)
+    const startIndex = (currentPage - 1) * postsPerPage
     const currentPosts = filteredPosts.slice(
       startIndex,
       startIndex + postsPerPage
-    );
-    return { totalPages, currentPosts };
-  }, [filteredPosts, currentPage, postsPerPage]);
+    )
+    return { totalPages, currentPosts }
+  }, [filteredPosts, currentPage, postsPerPage])
 
   // Handle page change
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    updateDebugInfo(allPosts, filteredPosts, page, searchQuery);
-  };
+    setCurrentPage(page)
+    updateDebugInfo(allPosts, filteredPosts, page, searchQuery)
+  }
 
   // Generate pagination items
   const renderPaginationItems = () => {
     // If fewer than 2 pages, don't show pagination
-    if (totalPages <= 1) return null;
+    if (totalPages <= 1) return null
 
-    const items = [];
-
-    // Previous button
-    items.push(
-      <PaginationItem key="prev">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-          disabled={currentPage === 1}
-          className="gap-1"
-        >
-          <ChevronRight className="h-4 w-4" />
-          הקודם
-        </Button>
-      </PaginationItem>
-    );
-
-    // Page numbers (simplified for now)
-    for (let i = 1; i <= totalPages; i++) {
-      // Only show current page, first, last, and pages close to current
-      if (
-        i === 1 ||
-        i === totalPages ||
-        (i >= currentPage - 1 && i <= currentPage + 1)
-      ) {
-        items.push(
-          <PaginationItem key={i}>
-            <PaginationLink
-              isActive={currentPage === i}
-              onClick={() => handlePageChange(i)}
-            >
-              {i}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      } else if (
-        (i === currentPage - 2 && currentPage > 3) ||
-        (i === currentPage + 2 && currentPage < totalPages - 2)
-      ) {
-        // Add ellipsis
-        items.push(
-          <PaginationItem key={`ellipsis-${i}`}>
-            <PaginationEllipsis />
-          </PaginationItem>
-        );
-      }
-    }
+    const items = []
 
     // Next button
     items.push(
@@ -305,10 +247,59 @@ export default function SearchableGrid({
           <ChevronLeft className="h-4 w-4" />
         </Button>
       </PaginationItem>
-    );
+    )
 
-    return items;
-  };
+    // Page numbers (RTL order)
+    const pageNumbers = []
+    for (let i = totalPages; i >= 1; i--) {
+      // Only show current page, first, last, and pages close to current
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentPage - 1 && i <= currentPage + 1)
+      ) {
+        pageNumbers.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              isActive={currentPage === i}
+              onClick={() => handlePageChange(i)}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        )
+      } else if (
+        (i === currentPage - 2 && currentPage > 3) ||
+        (i === currentPage + 2 && currentPage < totalPages - 2)
+      ) {
+        // Add ellipsis
+        pageNumbers.push(
+          <PaginationItem key={`ellipsis-${i}`}>
+            <PaginationEllipsis />
+          </PaginationItem>
+        )
+      }
+    }
+    items.push(...pageNumbers)
+
+    // Previous button
+    items.push(
+      <PaginationItem key="prev">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          className="gap-1"
+        >
+          <ChevronRight className="h-4 w-4" />
+          הקודם
+        </Button>
+      </PaginationItem>
+    )
+
+    return items
+  }
 
   return (
     <div className="space-y-6 " dir="rtl">
@@ -370,7 +361,6 @@ export default function SearchableGrid({
         </div>
       ) : (
         <>
-
           {/* Posts Grid */}
           {currentPosts.length > 0 ? (
             <LazyMotion features={domAnimation}>
@@ -406,35 +396,7 @@ export default function SearchableGrid({
           {/* Pagination */}
           <Pagination>
             <PaginationContent className="flex-row-reverse">
-              {currentPage < totalPages && (
-                <PaginationItem>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    className="gap-1 flex-row-reverse pl-2.5 pr-0"
-                  >
-                    <span>הבא</span>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                </PaginationItem>
-              )}
-
               {renderPaginationItems()}
-
-              {currentPage > 1 && (
-                <PaginationItem>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    className="gap-1 flex-row-reverse pr-2.5 pl-0"
-                  >
-                    <span>הקודם</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </PaginationItem>
-              )}
             </PaginationContent>
           </Pagination>
         </>
@@ -453,5 +415,5 @@ export default function SearchableGrid({
         </div>
       )}
     </div>
-  );
+  )
 }

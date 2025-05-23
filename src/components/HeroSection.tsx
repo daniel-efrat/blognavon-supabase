@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
@@ -14,6 +14,7 @@ const HeroSection = () => {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const controlsRef = useRef<OrbitControls | null>(null)
   const modelRef = useRef<THREE.Object3D | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     // [Previous Three.js setup code remains unchanged]
@@ -119,6 +120,7 @@ const HeroSection = () => {
     }
 
     const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
       if (
         !currentMount ||
         currentMount.clientWidth === 0 ||
@@ -421,7 +423,7 @@ const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.4 }}
           layout
           ref={mountRef}
-          className="
+          className={`
                         flex-1
                         flex
                         justify-center
@@ -432,7 +434,8 @@ const HeroSection = () => {
                         py-4
                         px-6
                         order-2 md:order-none
-                    "
+                        ${isMobile ? 'pointer-events-none' : ''}
+                    `}
         ></m.div>
       </div>
     </LazyMotion>

@@ -174,16 +174,20 @@ export default function AuthPage() {
               </div>
 
               {error && (
-                <p className="mt-2 text-sm text-destructive" dir="rtl">{error}</p>
+                <p className="mt-2 text-sm text-destructive" dir="rtl">
+                  {error}
+                </p>
               )}
               {message && (
-                <p className="mt-2 text-sm text-green-600" dir="rtl">{message}</p>
+                <p className="mt-2 text-sm text-green-600" dir="rtl">
+                  {message}
+                </p>
               )}
 
               <div>
                 <Button
                   type="submit"
-                  className="group relative flex w-full justify-center rounded-md border border-transparent bg-primary py-2 px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  className="group relative flex w-full justify-center rounded-md border cursor-pointer border-transparent bg-primary py-2 px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   disabled={loading}
                 >
                   {loading ? (
@@ -211,7 +215,7 @@ export default function AuthPage() {
             <div>
               <Button
                 variant="outline"
-                className="group relative flex w-full justify-center rounded-md py-2 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="group relative flex w-full justify-center cursor-pointer rounded-md py-2 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 onClick={handleGoogleSignIn}
                 disabled={loading}
               >
@@ -235,9 +239,7 @@ export default function AuthPage() {
                 className="font-medium text-primary hover:text-primary/90"
                 disabled={loading}
               >
-                {isSignUp
-                  ? "כבר יש לך חשבון? התחבר"
-                  : "אין לך חשבון? הירשם"}
+                {isSignUp ? "כבר יש לך חשבון? התחבר" : "אין לך חשבון? הירשם"}
               </button>
             </div>
 

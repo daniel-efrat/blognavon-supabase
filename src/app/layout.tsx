@@ -7,6 +7,7 @@ import { LoadingProvider } from "@/components/loading-overlay"
 import { ThemeProvider } from "next-themes"
 import { Background } from "@/components/Background"
 import Footer from "@/components/footer"
+import LenisProvider from "@/components/lenis-provider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,14 +54,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Background>
+          <LenisProvider>
+            <Background>
             <div className="fixed inset-0 opacity-10 dark:opacity-20 pointer-events-none" />
             <LoadingProvider>
               <Header />
               {children}
               <Footer />
             </LoadingProvider>
-          </Background>
+            </Background>
+          </LenisProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -9,19 +9,46 @@ import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
 import { createServerSupabaseClient } from '@/lib/supabase/server'; // For user session
 
-async function getPosts(): Promise<Post[]> {
-  // First, get the current user and check admin status using the server client
-  const supabase = await createServerSupabaseClient();
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+async function getSessionUser() {
+  const supabase = createServerSupabaseClient();
 
-  if (userError || !user) {
-    console.error('Error fetching user or no user found:', userError);
+  try {
+    // First get the session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+    if (!session) throw new Error('No session found');
+
+    // Then get the user to ensure we have fresh metadata
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) throw new Error('No user found');
+
+    return { user, session };
+  } catch (error) {
+    console.error('Auth error:', error);
     redirect('/auth');
   }
+}
 
-  const isAdmin = user.app_metadata?.roles?.includes('admin');
-  if (!isAdmin) {
-    console.warn('User is not admin, redirecting.');
+async function getPosts(): Promise<Post[]> {
+  // Get the session and user
+  const { user, session } = await getSessionUser();
+
+  // Log full session details for debugging
+  console.log('Session details:', {
+    userId: user.id,
+    email: user.email,
+    app_metadata: user.app_metadata,
+    session_id: session.access_token,
+    expires_at: session.expires_at
+  });
+
+  if (!user.app_metadata?.roles?.includes('admin')) {
+    console.warn('User is not admin:', {
+      userId: user.id,
+      roles: user.app_metadata?.roles,
+      email: user.email
+    });
     redirect('/');
   }
 

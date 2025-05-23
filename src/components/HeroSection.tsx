@@ -76,7 +76,7 @@ const HeroSection = () => {
     backLight.position.set(0, 0, -10)
     scene.add(backLight)
 
-// --- Controls ---
+    // --- Controls ---
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.dampingFactor = 0.05
@@ -86,8 +86,8 @@ const HeroSection = () => {
     controls.autoRotateSpeed = 0.8
     // Disable controls on mobile
     if (window.innerWidth < 768) {
-      controls.enabled = false;
-      controls.autoRotate = true;
+      controls.enabled = false
+      controls.autoRotate = true
     }
     controlsRef.current = controls
 
@@ -174,7 +174,7 @@ const HeroSection = () => {
       }
     }
 
-  loader.load(
+    loader.load(
       "/logo3.gltf",
       (gltf: { scene: THREE.Object3D }) => {
         const model = gltf.scene
@@ -311,15 +311,16 @@ const HeroSection = () => {
             }
             if ((object as THREE.Mesh).material instanceof THREE.Material) {
               // Cast to MeshStandardMaterial to access texture properties
-              const material = (object as THREE.Mesh).material as THREE.MeshStandardMaterial;
-              if (material && typeof material.dispose === 'function') {
-                material.dispose();
+              const material = (object as THREE.Mesh)
+                .material as THREE.MeshStandardMaterial
+              if (material && typeof material.dispose === "function") {
+                material.dispose()
                 // Dispose of textures
-                material.map?.dispose();
-                material.lightMap?.dispose();
-                material.aoMap?.dispose();
-                material.emissiveMap?.dispose();
-                material.envMap?.dispose();
+                material.map?.dispose()
+                material.lightMap?.dispose()
+                material.aoMap?.dispose()
+                material.emissiveMap?.dispose()
+                material.envMap?.dispose()
               }
             }
           }
@@ -428,13 +429,15 @@ const HeroSection = () => {
                         flex
                         justify-center
                         items-center
-                        w-full max-w-[90%] md:max-w-[50%]
-                        h-[400px]
-                        -mt-12 sm:-mt-0
+                        w-[300px] sm:w-full max-w-[90%] md:max-w-[50%]
+                        aspect-square sm:aspect-auto sm:h-[400px]
                         py-4
                         px-6
                         order-2 md:order-none
                         ${isMobile ? 'pointer-events-none' : ''}
+                        relative
+                        overflow-hidden
+                        md:sticky md:top-0
                     `}
         ></m.div>
       </div>

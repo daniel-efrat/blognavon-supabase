@@ -10,17 +10,17 @@ export function createServerSupabaseClient() {
     supabaseAnonKey,
     {
       cookies: {
-        get(name: string) {
-          const cookieStore = cookies();
+        async get(name: string) {
+          const cookieStore = await cookies();
           return cookieStore.get(name)?.value;
         },
-        set(name: string, value: string, options: CookieOptions) {
-          const cookieStore = cookies();
+        async set(name: string, value: string, options: CookieOptions) {
+          const cookieStore = await cookies();
           cookieStore.set(name, value, options);
         },
-        remove(name: string, options: CookieOptions) {
-          const cookieStore = cookies();
-          cookieStore.delete(name);
+        async remove(name: string, options: CookieOptions) {
+          const cookieStore = await cookies();
+          cookieStore.delete({ name, ...options });
         },
       },
     }

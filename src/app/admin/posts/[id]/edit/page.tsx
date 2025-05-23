@@ -1,259 +1,121 @@
-// src/app/admin/posts/[id]/edit/page.tsx
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import Image from "next/image";
-import { supabase } from "@/lib/supabase/client";
-import { uploadImage, createThumbnail } from "@/lib/uploadImage";
+import { useParams } from "next/navigation"
+import { PostEditor } from "@/components/admin/post-editor"
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase/client"
+import { Loader2 } from "lucide-react"
+import { toast } from "@/components/ui/use-toast"
+import type { Post } from "@/lib/types"
 
 export default function EditPostPage() {
-  const router = useRouter();
-  const params = useParams();
-  const postId = params?.id as string;
+  const params = useParams()
+  const postId = params?.id as string
 
-  const [form, setForm] = useState({
-    title: "",
-    slug: "",
-    content: "",
-    excerpt: "",
-    author: "",
-    featured_image_url: "",
-    status: "draft",
-    category: "",
-    tags: "",
-  });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [post, setPost] = useState<Post | null>(null)
+  const [previousPostId, setPreviousPostId] = useState<string | null>(null)
+  const [nextPostId, setNextPostId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchPost() {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("id", postId)
-        .single();
+      if (!postId) return
 
-      if (error) {
-        setError(error.message);
-      } else if (data) {
-        setForm({
-          ...data,
-          tags: Array.isArray(data.tags) ? data.tags.join(", ") : "",
-        });
-        if (data.featured_image_url) {
-          setImagePreview(data.featured_image_url);
+      setLoading(true)
+      setError(null)
+      try {
+        // Fetch the current post
+        const { data: currentPost, error: currentError } = await supabase
+          .from("posts")
+          .select("*")
+          .eq("id", postId)
+          .single()
+
+        if (currentError) throw currentError
+        if (!currentPost) throw new Error("הפוסט לא נמצא")
+
+        // Transform dates to proper format
+        const formattedPost: Post = {
+          ...currentPost,
+          createdAt: currentPost.created_at,
+          updatedAt: currentPost.updated_at,
+          featuredImage: currentPost.featured_image,
         }
+        setPost(formattedPost)
+
+        // Fetch previous post ID
+        const { data: prevResult, error: prevFetchError } = await supabase
+          .from("posts")
+          .select("id")
+          .lt("created_at", currentPost.created_at)
+          .eq("status", currentPost.status)
+          .order("created_at", { ascending: false })
+          .limit(1) // Fetches an array, expecting 0 or 1 item
+
+        if (prevFetchError) {
+          // Log the error, but it might not be critical for page load
+          console.error("Error fetching previous post ID:", prevFetchError)
+          // Optionally, show a less intrusive error or just log
+        }
+        setPreviousPostId(prevResult && prevResult.length > 0 ? prevResult[0].id : null)
+
+        // Fetch next post ID
+        const { data: nextResult, error: nextFetchError } = await supabase
+          .from("posts")
+          .select("id")
+          .gt("created_at", currentPost.created_at)
+          .eq("status", currentPost.status)
+          .order("created_at", { ascending: true })
+          .limit(1) // Fetches an array, expecting 0 or 1 item
+
+        if (nextFetchError) {
+          // Log the error
+          console.error("Error fetching next post ID:", nextFetchError)
+        }
+        setNextPostId(nextResult && nextResult.length > 0 ? nextResult[0].id : null)
+      } catch (error) {
+        console.error("Error fetching post:", error)
+        setError(
+          error instanceof Error ? error.message : "אירעה שגיאה בטעינת הפוסט"
+        )
+        toast({
+          title: "שגיאה",
+          description: error instanceof Error ? error.message : "אירעה שגיאה בטעינת הפוסט",
+          variant: "accent2",
+        })
+      } finally {
+        setLoading(false)
       }
-      setLoading(false);
     }
-    if (postId) fetchPost();
-  }, [postId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    try {
-      setImageUploading(true);
-      setError(null);
-      
-      // Create preview
-      const preview = await createThumbnail(file);
-      setImagePreview(preview);
-      
-      // Upload to Supabase Storage
-      const { url } = await uploadImage(file);
-      
-      // Update form with new URL
-      setForm({ ...form, featured_image_url: url });
-      
-      // Final preview as the actual URL
-      setImagePreview(url);
-    } catch (err) {
-      console.error('Image upload error:', err);
-      // Better error handling to avoid [object Object] errors
-      if (err instanceof Error) {
-        setError(`שגיאה בהעלאת התמונה: ${err.message}`);
-      } else if (typeof err === 'string') {
-        setError(`שגיאה בהעלאת התמונה: ${err}`);
-      } else {
-        setError('שגיאה לא ידועה בהעלאת התמונה');
-      }
-    } finally {
-      setImageUploading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
-
-    // Convert tags to array
-    const tagsArray = form.tags.split(",").map((tag) => tag.trim()).filter(Boolean);
-
-    const { error } = await supabase
-      .from("posts")
-      .update({
-        ...form,
-        tags: tagsArray,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", postId);
-
-    setSaving(false);
-
-    if (error) {
-      setError(error.message);
-    } else {
-      router.push("/admin/posts");
-    }
-  };
+    fetchPost()
+  }, [postId])
 
   if (loading) {
-    return <div className="p-4">טוען פוסט...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error || !post) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <h1 className="text-xl font-semibold">שגיאה</h1>
+        <p className="text-muted-foreground">{error || "הפוסט לא נמצא"}</p>
+      </div>
+    )
   }
 
   return (
-    <main className="container mx-auto p-4 max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">עריכת פוסט</h1>
-      <form onSubmit={handleSubmit} className="space-y-4" dir="rtl">
-        <div>
-          <label className="block mb-1 font-semibold">כותרת</label>
-          <input
-            type="text"
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-            required
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-semibold">Slug</label>
-          <input
-            type="text"
-            name="slug"
-            value={form.slug}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-            required
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-semibold">תוכן (HTML)</label>
-          <textarea
-            name="content"
-            value={form.content}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2 h-32"
-            required
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-semibold">תקציר</label>
-          <textarea
-            name="excerpt"
-            value={form.excerpt}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2 h-16"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-semibold">מחבר</label>
-          <input
-            type="text"
-            name="author"
-            value={form.author}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-semibold">תמונה ראשית</label>
-          <div className="space-y-2">
-            {imagePreview && (
-              <div className="relative w-full mb-2 border rounded overflow-hidden aspect-[16/9]">
-                <Image 
-                  src={imagePreview} 
-                  alt="תצוגה מקדימה של התמונה" 
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  unoptimized={true}
-                />
-              </div>
-            )}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="border rounded p-2 flex-grow text-sm"
-                disabled={imageUploading}
-              />
-              {imageUploading && <span className="text-blue-600">מעלה תמונה...</span>}
-              <input
-                type="text"
-                name="featured_image_url"
-                value={form.featured_image_url}
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2"
-                placeholder="או הכנס URL של תמונה"
-              />
-            </div>
-          </div>
-        </div>
-        <div>
-          <label className="block mb-1 font-semibold">סטטוס</label>
-          <select
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          >
-            <option value="draft">טיוטה</option>
-            <option value="published">פורסם</option>
-          </select>
-        </div>
-        <div>
-          <label className="block mb-1 font-semibold">קטגוריה</label>
-          <input
-            type="text"
-            name="category"
-            value={form.category}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-semibold">תגיות (מופרדות בפסיק)</label>
-          <input
-            type="text"
-            name="tags"
-            value={form.tags}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-        {error && <div className="text-red-600">{error}</div>}
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          disabled={saving || imageUploading}
-        >
-          {saving ? "שומר..." : "שמור שינויים"}
-        </button>
-      </form>
-    </main>
-  );
+    <div className="container mx-auto py-6 px-4">
+      <PostEditor
+        post={post}
+        previousPostId={previousPostId}
+        nextPostId={nextPostId}
+      />
+    </div>
+  )
 }

@@ -1,32 +1,29 @@
-// src/lib/types.ts
-export interface CommentAuthor {
-  uid?: string
-  username?: string
-  displayName?: string | null
-}
-
-export interface Comment {
-  id: string
-  postId: string
-  content: string
-  author: CommentAuthor
-  createdAt: Date
-  updatedAt: Date
-  parentId?: string
-  number?: number
-}
-
 export interface Post {
-  excerpt?: string
   id: string
   title: string
   slug: string
-  author: string
-  createdAt: string | Date // Or just Date if you ensure conversion
-  updatedAt: string | Date // Or just Date
-  status: "published" | "draft" | "archived"
+  content: string
+  excerpt?: string
   featuredImage?: string
-  content?: string
-  category?: string
+  author?: string
+  status: "draft" | "published"
   tags?: string[]
+  category?: string
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface PostSummary {
+  id: string
+  title: string
+  slug: string
+  author?: string
+  status: "draft" | "published"
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface TitlesAndSlugs {
+  title: string
+  slug: string
 }

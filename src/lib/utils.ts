@@ -12,3 +12,16 @@ export function formatDate(dateString: string | Date): string {
     day: '2-digit',
   });
 }
+
+export const cleanupHtml = (content: string): string => {
+  if (!content) return ""
+  return content
+    .replace(/\\n/g, " ")
+    .replace(/\n/g, " ")
+    .replace(/>\s+</g, "><")
+    .replace(/<p>\s*<\/p>/g, "")
+    .replace(/<p>\s+/g, "<p>")
+    .replace(/\s+<\/p>/g, "</p>")
+    .replace(/\s+/g, " ")
+    .trim()
+}

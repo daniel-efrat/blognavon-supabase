@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { Post } from "@/lib/types"
+import type { PostSummary } from "@/lib/types"
 import { formatDate } from "@/lib/utils"
 import {
   deletePost,
@@ -21,7 +21,7 @@ import { useState, useEffect } from "react"
 import { toast } from "@/components/ui/use-toast"
 
 interface AdminPostListProps {
-  posts: Post[]
+  posts: PostSummary[]
 }
 
 export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
@@ -42,13 +42,13 @@ export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
           description: "אין פוסטים לרענן",
           variant: "default",
         })
-        setIsRefreshing(false); // Ensure refreshing is set to false
+        setIsRefreshing(false)
         return
       }
 
       const { data: fetchedPosts, error } = await supabase
         .from('posts')
-        .select('*') // Select all fields to ensure all Post properties are available
+        .select('id, title, slug, author, created_at, updated_at, status')
         .in('id', postIds)
       
       if (error) {
@@ -58,24 +58,22 @@ export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
       fetchedPosts?.forEach((postData) => {
         const currentPost = postMap.get(postData.id)
         if (currentPost) {
-          // Ensure all relevant fields are compared and dates are compared properly
           if (
             postData.author !== currentPost.author ||
             postData.title !== currentPost.title ||
             postData.slug !== currentPost.slug ||
             postData.status !== currentPost.status ||
-            new Date(postData.updated_at).getTime() !== new Date(currentPost.updatedAt).getTime()
+            new Date(postData.updated_at).getTime() !== currentPost.updatedAt.getTime()
           ) {
             postMap.set(postData.id, {
-              ...currentPost, // Spread current post to retain other potential fields
-              id: postData.id, // ensure id is from fetched data
+              id: postData.id,
               title: postData.title,
               slug: postData.slug,
               author: postData.author,
-              createdAt: new Date(postData.created_at), // ensure dates are Date objects
+              createdAt: new Date(postData.created_at),
               updatedAt: new Date(postData.updated_at),
               status: postData.status,
-            } as Post) // Cast to Post to satisfy type checking
+            } as PostSummary)
             hasUpdates = true
           }
         }
@@ -96,11 +94,11 @@ export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
         })
       }
     } catch (error) {
-      console.error("Error refreshing posts data:", error);
+      console.error("Error refreshing posts data:", error)
       toast({
         title: "שגיאה",
         description: "אירעה שגיאה בעת רענון הנתונים",
-        variant: "default", // Changed from destructive due to type error
+        variant: "default",
       })
     } finally {
       setIsRefreshing(false)
@@ -108,12 +106,8 @@ export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
   }
 
   useEffect(() => {
-    // initialPosts might be an empty array if no posts exist yet.
-    // The AdminPostList component itself handles displaying a message for empty posts.
-    // Thus, no specific toast for empty initialPosts is needed here unless desired.
-    // If initialPosts changes (e.g. parent component re-fetches), update the local state.
-    setPosts(initialPosts);
-  }, [initialPosts]);
+    setPosts(initialPosts)
+  }, [initialPosts])
 
   const handleDelete = async (id: string) => {
     if (confirm("האם אתה בטוח שברצונך למחוק פוסט זה?")) {
@@ -128,11 +122,11 @@ export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
           variant: "default",
         })
       } catch (error) {
-        console.error("Error deleting post:", error);
+        console.error("Error deleting post:", error)
         toast({
           title: "שגיאה",
           description: "מחיקת הפוסט נכשלה",
-          variant: "default", // Changed from destructive due to type error
+          variant: "default",
         })
       } finally {
         setIsDeleting(null)
@@ -164,7 +158,7 @@ export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
               <TableHead className="text-right">מחבר</TableHead>
               <TableHead className="text-right">תאריך</TableHead>
               <TableHead className="text-right">סטטוס</TableHead>
-              <TableHead className="w-[120px] text-right">פעולות</TableHead> {/* Increased width for 3 icons */}
+              <TableHead className="w-[120px] text-right">פעולות</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -203,12 +197,12 @@ export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end space-x-1 space-x-reverse">
-                      <Link href={`/blog/${post.slug}`} target="_blank" passHref>
+                      <Link href={`/blog/${post.slug}`} target="_blank">
                         <Button size="icon" variant="ghost" aria-label="View Post">
                           <Eye className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Link href={`/admin/posts/${post.id}/edit`} passHref>
+                      <Link href={`/admin/posts/${post.id}/edit`}>
                         <Button size="icon" variant="ghost" aria-label="Edit Post">
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -222,7 +216,7 @@ export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
                         disabled={isDeleting === post.id}
                       >
                         {isDeleting === post.id ? (
-                           <RefreshCw className="h-4 w-4 animate-spin" /> 
+                          <RefreshCw className="h-4 w-4 animate-spin" />
                         ) : (
                           <Trash2 className="h-4 w-4" />
                         )}

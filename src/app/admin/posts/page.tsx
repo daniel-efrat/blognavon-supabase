@@ -1,7 +1,7 @@
 // src/app/admin/posts/page.tsx
 import { AdminPostList } from '@/components/admin/admin-post-list';
 import { supabase as adminSupabase } from '@/lib/supabase/admin'; // Using admin client for full access
-import type { Post } from '@/lib/types';
+import type { PostSummary } from '@/lib/types';
 import { redirect } from 'next/navigation';
 import { Toaster } from "@/components/ui/toaster";
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
 import { createServerSupabaseClient } from '@/lib/supabase/server'; // For user session
 
-async function getPosts(): Promise<Post[]> {
+async function getPosts(): Promise<PostSummary[]> {
 
   // If user is admin, fetch posts using the admin client for potentially elevated privileges
   const { data, error: postsError } = await adminSupabase
@@ -32,7 +32,7 @@ async function getPosts(): Promise<Post[]> {
     // If they can be null in the DB, adjust your Post type or provide defaults
     author: post.author || 'Unknown Author', 
     slug: post.slug || '', 
-  })) as Post[];
+  })) as PostSummary[];
 }
 
 export default async function AdminPostsPage() {
@@ -43,7 +43,7 @@ export default async function AdminPostsPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-right">ניהול פוסטים</h1>
         <Button asChild>
-          <Link href="/admin/edit/new" className="flex items-center gap-2">
+          <Link href="/admin/posts/new" className="flex items-center gap-2">
             <PlusCircle className="h-5 w-5" />
             <span>פוסט חדש</span>
           </Link>

@@ -17,7 +17,7 @@ export async function uploadImage(file: File, bucket: string = 'blog-images') {
     }
     
     // Upload the file to Supabase Storage
-    const { data, error } = await supabase
+    const { error } = await supabase
       .storage
       .from(bucket)
       .upload(fileName, file, {

@@ -71,8 +71,14 @@ export default function AuthPage() {
         if (signInError) throw signInError
         // router.push('/'); // Redirect handled by onAuthStateChange
       }
-    } catch (err: any) {
-      setError(err.error_description || err.message)
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === 'object' && err && 'error_description' in err) {
+        setError((err as { error_description: string }).error_description);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
     setLoading(false)
   }

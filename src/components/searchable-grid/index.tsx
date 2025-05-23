@@ -15,19 +15,24 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getPublishedPosts } from "@/lib/supabase/posts"
 import { Post } from "@/lib/types"
-import Link from "next/link"
-import Image from "next/image"
 import { debounce } from "lodash"
-import { formatDate } from "@/lib/utils"
-import { useRouter } from "next/navigation"
 import { LazyMotion, domAnimation, m } from "framer-motion"
 import { PostCard } from "./post-card"
+
+interface DebugInfo {
+  allPostsCount: number
+  filteredPostsCount: number
+  currentPage: number
+  totalPages: number
+  searchQuery: string
+  timeLastUpdated: string
+}
 
 interface SearchableGridProps {
   initialPosts?: Post[]
   postsPerPage?: number
   showDevTools?: boolean
-  onDebugInfoUpdate?: (debugInfo: any) => void
+  onDebugInfoUpdate?: (debugInfo: DebugInfo) => void
 }
 
 export default function SearchableGrid({
@@ -74,15 +79,11 @@ export default function SearchableGrid({
       if (onDebugInfoUpdate) {
         onDebugInfoUpdate(newDebugInfo)
       }
-      // IMPORTANT: Empty dependency array to break the cycle
     },
-    []
+    [postsPerPage, onDebugInfoUpdate]
   )
 
-  // Load posts only on initial mount or when initialPosts actually changes
-  // Important: Using a ref for comparison to avoid infinite loops
-  const initialPostsStringified = JSON.stringify(initialPosts)
-
+  // Load posts when initialPosts changes
   useEffect(() => {
     async function loadPosts() {
       try {
@@ -134,28 +135,26 @@ export default function SearchableGrid({
         setFilteredPosts(fetchedPosts)
         updateDebugInfo(fetchedPosts, fetchedPosts, 1, "")
         setIsLoading(false)
-      } catch (err: any) {
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load posts'
         console.error("Error loading posts:", err)
-        setError(err.message || "Failed to load posts")
+        setError(errorMessage)
         setIsLoading(false)
       }
     }
 
     loadPosts()
-    // Only run when initialPosts stringified value changes
-  }, [initialPostsStringified])
+  }, [initialPosts, updateDebugInfo])
 
   // Handle search input change with debounce
   const debouncedSearch = useMemo(
     () =>
       debounce((query: string) => {
-        console.log(`[SearchableGrid] Searching for: "${query}"`)
+        console.log('[SearchableGrid] Searching for:', query)
 
         if (!query.trim()) {
           // If search is cleared, show all posts
-          console.log(
-            `[SearchableGrid] Empty search, showing all ${allPosts.length} posts`
-          )
+          console.log('[SearchableGrid] Empty search, showing all posts:', allPosts.length)
           setFilteredPosts(allPosts)
           updateDebugInfo(allPosts, allPosts, 1, "")
           setCurrentPage(1)
@@ -175,9 +174,7 @@ export default function SearchableGrid({
           )
         })
 
-        console.log(
-          `[SearchableGrid] Search "${query}" found ${results.length} results`
-        )
+        console.log('[SearchableGrid] Search results:', results.length)
 
         // Explicitly force a render by creating a new array
         setFilteredPosts([...results])
@@ -190,14 +187,14 @@ export default function SearchableGrid({
   // Handle search input
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value
-    console.log(`[SearchableGrid] Search input changed to: "${newQuery}"`)
+    console.log('[SearchableGrid] Search input changed:', newQuery)
     setSearchQuery(newQuery)
     debouncedSearch(newQuery)
   }
 
   // Clear search
   const handleClearSearch = () => {
-    console.log(`[SearchableGrid] Clearing search`)
+    console.log('[SearchableGrid] Clearing search')
     setSearchQuery("")
     setFilteredPosts([...allPosts]) // Force a new array reference
     setCurrentPage(1)
@@ -206,9 +203,7 @@ export default function SearchableGrid({
 
   // Calculate pagination - use useMemo to avoid recalculating on every render
   const { totalPages, currentPosts } = useMemo(() => {
-    console.log(
-      `[SearchableGrid] Calculating pagination for ${filteredPosts.length} posts`
-    )
+    console.log('[SearchableGrid] Calculating pagination:', filteredPosts.length)
     const totalPages = Math.ceil(filteredPosts.length / postsPerPage)
     const startIndex = (currentPage - 1) * postsPerPage
     const currentPosts = filteredPosts.slice(
@@ -329,7 +324,7 @@ export default function SearchableGrid({
       {/* Search Status */}
       {searchQuery && (
         <div className="text-sm text-gray-500">
-          נמצאו {filteredPosts.length} תוצאות עבור "{searchQuery}"
+          נמצאו {filteredPosts.length} תוצאות עבור &quot;{searchQuery}&quot;
         </div>
       )}
 
@@ -387,7 +382,7 @@ export default function SearchableGrid({
             <div className="text-center py-12">
               <p className="text-gray-500">
                 {searchQuery
-                  ? `לא נמצאו תוצאות עבור "${searchQuery}"`
+                  ? `לא נמצאו תוצאות עבור &quot;${searchQuery}&quot;`
                   : "אין פוסטים להצגה"}
               </p>
             </div>

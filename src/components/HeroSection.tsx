@@ -248,7 +248,7 @@ const HeroSection = () => {
         handleResize()
       },
       () => {},
-      (error: unknown) => {
+      () => {
         const geometry = new THREE.BoxGeometry(2, 2, 2)
         const material = new THREE.MeshStandardMaterial({
           color: 0x6366f1,
@@ -308,11 +308,16 @@ const HeroSection = () => {
               ;((object as THREE.Mesh).material as THREE.Material).dispose()
             }
             if ((object as THREE.Mesh).material instanceof THREE.Material) {
-              for (const key in (object as THREE.Mesh).material) {
-                const value = ((object as THREE.Mesh).material as any)[key]
-                if (value && typeof value.dispose === "function") {
-                  value.dispose()
-                }
+              // Cast to MeshStandardMaterial to access texture properties
+              const material = (object as THREE.Mesh).material as THREE.MeshStandardMaterial;
+              if (material && typeof material.dispose === 'function') {
+                material.dispose();
+                // Dispose of textures
+                material.map?.dispose();
+                material.lightMap?.dispose();
+                material.aoMap?.dispose();
+                material.emissiveMap?.dispose();
+                material.envMap?.dispose();
               }
             }
           }

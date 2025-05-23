@@ -1,16 +1,14 @@
 "use client"
 
-import Image from "next/image"
 import { useState, useEffect } from "react"
 
 interface ClientFeaturedImageProps {
   src: string
   alt: string
-  postId: string
   title: string
 }
 
-export function ClientFeaturedImage({ src, alt, postId, title }: ClientFeaturedImageProps) {
+export function ClientFeaturedImage({ src, alt, title }: ClientFeaturedImageProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
@@ -34,7 +32,7 @@ export function ClientFeaturedImage({ src, alt, postId, title }: ClientFeaturedI
     return () => {
       setIsMounted(false);
     };
-  }, [src]);
+  }, [src, isMounted]);
 
   const handleLoad = () => {
     if (isMounted) {
@@ -60,14 +58,17 @@ export function ClientFeaturedImage({ src, alt, postId, title }: ClientFeaturedI
         src={src}
         alt={alt}
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ zIndex: imageLoaded ? 10 : 0 }}
+        style={{ 
+          zIndex: imageLoaded && !imageError ? 10 : 0,
+          display: imageError ? 'none' : 'block'
+        }}
         loading="eager"
         onLoad={handleLoad}
         onError={handleError}
       />
       
       {/* Add a title fallback in case image fails */}
-      <div className="absolute inset-0 flex items-center justify-center bg-muted z-[-1]">
+      <div className={`absolute inset-0 flex items-center justify-center ${imageError ? 'bg-destructive/10' : 'bg-muted'} z-[-1]`}>
         <span 
           className="text-accent text-center px-4 font-bold" 
           dir="rtl"

@@ -1,4 +1,21 @@
 // src/lib/types.ts
+export interface CommentAuthor {
+  uid?: string
+  username?: string
+  displayName?: string | null
+}
+
+export interface Comment {
+  id: string
+  postId: string
+  content: string
+  author: CommentAuthor
+  createdAt: Date
+  updatedAt: Date
+  parentId?: string
+  number?: number
+}
+
 export interface Post {
   excerpt?: string
   id: string

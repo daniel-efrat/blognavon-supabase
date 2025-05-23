@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { searchPosts } from "@/lib/supabase/posts";
 import { Post } from "@/lib/types";
 import LoadingOverlay from "@/components/loading-overlay";
@@ -21,7 +20,6 @@ export function SearchBar({
 }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [posts, setPosts] = useState<Post[]>(initialPosts); // Start with server-rendered posts
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(true); // Start loading to fetch all posts
   const [error, setError] = useState<string | null>(null);
   
@@ -33,7 +31,6 @@ export function SearchBar({
     // Use the initial posts for searching
     console.log('Using initial posts for search:', initialPosts.length);
     setPosts(initialPosts);
-    setFilteredPosts(initialPosts);
     
     // Let parent know we're ready
     setTimeout(() => {
@@ -68,7 +65,6 @@ export function SearchBar({
   const filterPosts = async (searchTerm: string) => {
     if (!searchTerm || !searchTerm.trim()) {
       // Empty search - use all posts
-      setFilteredPosts(posts);
       onSearch("", posts);
       return;
     }
@@ -81,9 +77,7 @@ export function SearchBar({
       const results = await searchPosts(searchTerm, 20);
       
       console.log(`Found ${results.length} matching posts for "${searchTerm}"`);
-      setFilteredPosts(results);
-      
-      // This is the key line that notifies the parent component of search results
+      // Notify the parent component of search results
       onSearch(searchTerm, results);
     } catch (err) {
       console.error('Error searching posts:', err);
@@ -98,7 +92,6 @@ export function SearchBar({
   // Clear search
   const handleClear = () => {
     setQuery("");
-    setFilteredPosts(posts);
     onSearch("", posts);
   };
 

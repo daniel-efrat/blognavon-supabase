@@ -327,7 +327,6 @@ export default async function BlogPost({ params }: PageProps) {
                   <ClientFeaturedImage
                     src={post.featuredImage}
                     alt={post.title}
-                    postId={post.id}
                     title={post.title}
                   />
                 </div>

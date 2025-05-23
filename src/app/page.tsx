@@ -1,25 +1,12 @@
 // src/app/page.tsx
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import Link from 'next/link';
-import Image from 'next/image';
 import SearchableGrid from "@/components/searchable-grid";
 import HeroSection from "@/components/HeroSection";
-
-interface Post {
-  id: string | number;
-  title: string;
-  slug: string;
-  excerpt: string | null;
-  author: string | null;
-  featured_image_url: string | null;
-  category: string | null;
-  created_at: string;
-}
 
 export default async function HomePage() {
   const supabase = await createServerSupabaseClient();
 
-  const { data: posts, error } = await supabase
+  const { error } = await supabase
     .from("posts")
     .select("id, title, slug, excerpt, author, featured_image_url, category, created_at")
     .eq("status", "published")

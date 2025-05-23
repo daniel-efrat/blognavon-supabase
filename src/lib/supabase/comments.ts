@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Comment, User } from '@/lib/types';
+import type { User } from '@supabase/supabase-js';
+import type { Comment } from '@/lib/types';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -63,8 +64,8 @@ export async function createComment(
       parent_id: parentId,
       content,
       number,
-      user_id: user.uid,
-      username: username || user.displayName
+      user_id: user.id,
+      username: username || user.email
     })
     .select()
     .single();

@@ -1,7 +1,7 @@
 import React from "react";
 import { LucideProps } from "lucide-react";
 
-export const WhatsappIcon = ({ size = 24, strokeWidth = 2, className, ...props }: LucideProps) => {
+export const WhatsappIcon = ({ size = 24, className, ...props }: LucideProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

@@ -6,7 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
-import { useAuth } from "@/lib/auth-hooks.tsx"
+import { useAuth } from "@/lib/auth-hooks"
 import { LazyMotion, domAnimation } from "framer-motion"
 
 export default function Header() {
@@ -15,21 +15,6 @@ export default function Header() {
 
   // Check if the current route is the landing page
   const isLandingPage = pathname === "/landing"
-
-  // Define the width of the animated border based on the route
-  const getRouteWidth = (route: string): string => {
-    if (route.startsWith("/admin")) {
-      return "60px" // Width for all admin routes
-    }
-
-    const routeWidths: { [key: string]: string } = {
-      "/": "60px", // Width for the home page
-      "/login": "60px", // Width for the login page
-      "/signup": "60px", // Width for the signup page
-    }
-
-    return routeWidths[route] || "0px" // Default to 0 if not found
-  }
 
   return (
     <LazyMotion features={domAnimation}>
@@ -122,13 +107,17 @@ export default function Header() {
             >
               <ModeToggle />
               {user ? (
-                <Button variant="outline" onClick={signOut}>
+                <Button variant="outline" onClick={signOut} className="cursor-pointer">
                   התנתק
                 </Button>
               ) : (
-                <Link href="/auth">
-                  <Button variant="outline">התחבר</Button>
-                </Link>
+                <Button
+                  variant="outline"
+                  className="cursor-pointer"
+                  onClick={() => window.location.href = '/auth'}
+                >
+                  התחבר
+                </Button>
               )}
             </m.div>
           </div>

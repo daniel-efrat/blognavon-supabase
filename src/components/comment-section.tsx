@@ -14,7 +14,7 @@ import { formatDate } from "@/lib/utils"
 import { MessageSquare, Trash2 } from "lucide-react"
 
 interface CommentFormProps {
-  postId: string
+  postId: string  // Required for parent's handleSubmit
   onSubmit: (
     content: string,
     username?: string,
@@ -37,9 +37,10 @@ function CommentForm({
   const [username, setUsername] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // postId is required for API request validation, ensuring comments are associated with the correct post
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!user || !content.trim()) return
+    if (!user || !content.trim() || !postId) return
 
     setIsSubmitting(true)
     try {
@@ -47,8 +48,8 @@ function CommentForm({
       setContent("")
       setUsername("")
       onCancel?.()
-    } catch (error) {
-      // Error handling for comment submission
+    } catch (err) {
+      console.error('Failed to submit comment:', err);
     } finally {
       setIsSubmitting(false)
     }
@@ -198,25 +199,25 @@ export function CommentSection({
   )
   const [isLoading, setIsLoading] = useState(true)
 
-  async function loadComments() {
-    try {
-      setIsLoading(true)
-      const loadedComments = await getCommentsByPostId(postId)
-      setComments(loadedComments)
-    } catch (error: any) {
-      toast({
-        title: "אירעה שגיאה",
-        description: "לא ניתן לטעון את התגובות כרגע",
-        variant: "accent2",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   useEffect(() => {
+    async function loadComments() {
+      try {
+        setIsLoading(true)
+        const loadedComments = await getCommentsByPostId(postId)
+        setComments(loadedComments)
+      } catch (err) {
+        console.error('Failed to load comments:', err);
+        toast({
+          title: "אירעה שגיאה",
+          description: "לא ניתן לטעון את התגובות כרגע",
+          variant: "accent2",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
     loadComments()
-  }, [])
+  }, [postId, toast])
 
   const commentHierarchy = comments.reduce((acc, comment) => {
     if (!comment.parentId) {
@@ -297,7 +298,8 @@ export function CommentSection({
         title: "תגובה נוספה בהצלחה",
         description: "התגובה שלך נוספה לפוסט",
       })
-    } catch (error: any) {
+    } catch (err) {
+      console.error('Failed to create comment:', err);
       toast({
         title: "אירעה שגיאה",
         description: "לא ניתן להוסיף את התגובה כרגע",
@@ -335,7 +337,8 @@ export function CommentSection({
         title: "התגובה נמחקה",
         description: "התגובה הוסרה בהצלחה",
       })
-    } catch (error: any) {
+    } catch (err) {
+      console.error('Failed to delete comment:', err);
       toast({
         title: "אירעה שגיאה",
         description: "לא ניתן למחוק את התגובה כרגע",
@@ -380,7 +383,7 @@ export function CommentSection({
       ) : (
         <div className="space-y-6">
           {Object.entries(commentHierarchy)
-            .filter(([_, { comment }]) => comment && !comment.parentId)
+            .filter(([, { comment }]) => comment && !comment.parentId)
             .sort((a, b) => {
               const commentA = a[1].comment!
               const commentB = b[1].comment!

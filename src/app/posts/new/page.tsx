@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import { uploadImage, createThumbnail } from "@/lib/uploadImage";
 
@@ -148,11 +149,14 @@ export default function NewPostPage() {
           <label className="block mb-1 font-semibold">תמונה ראשית</label>
           <div className="space-y-2">
             {imagePreview && (
-              <div className="relative w-full h-40 mb-2 border rounded overflow-hidden">
-                <img 
+              <div className="relative w-full mb-2 border rounded overflow-hidden aspect-[16/9]">
+                <Image 
                   src={imagePreview} 
                   alt="תצוגה מקדימה של התמונה" 
-                  className="object-cover w-full h-full"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  unoptimized={true}
                 />
               </div>
             )}

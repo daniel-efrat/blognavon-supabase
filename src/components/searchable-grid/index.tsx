@@ -13,7 +13,6 @@ import {
 import { Search, X, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getPublishedPosts } from "@/lib/supabase/posts"
 import { Post } from "@/lib/types"
 import { debounce } from "lodash"
 import { LazyMotion, domAnimation, m } from "framer-motion"
@@ -48,7 +47,7 @@ export default function SearchableGrid({
 
   // UI state
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
   // Debug state

@@ -6,7 +6,7 @@ import HeroSection from "@/components/HeroSection";
 export default async function HomePage() {
   const supabase = await createServerSupabaseClient();
 
-  const { error } = await supabase
+  const { data: posts, error } = await supabase
     .from("posts")
     .select("id, title, slug, excerpt, author, featured_image_url, category, created_at")
     .eq("status", "published")
@@ -22,7 +22,7 @@ export default async function HomePage() {
       <HeroSection/>
       <h1 className="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-white">פוסטים אחרונים</h1>
 
-      <SearchableGrid/>
+      <SearchableGrid initialPosts={posts || []}/>
     </main>
   );
 }

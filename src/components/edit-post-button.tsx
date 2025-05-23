@@ -15,7 +15,7 @@ export function EditPostButton({ postId }: EditPostButtonProps) {
   if (!isAdmin) return null
 
   return (
-    <Link href={`/admin/edit/${postId}`}>
+    <Link href={`/admin/posts/${postId}/edit`}>
       <Button
         size="icon"
         variant="outline"

@@ -10,8 +10,7 @@ export default async function HomePage() {
     .from("posts")
     .select("id, title, slug, excerpt, author, featured_image_url, category, created_at, updated_at")
     .eq("status", "published")
-    .order("created_at", { ascending: false })
-    .limit(10);
+    .order("created_at", { ascending: false });
 
   if (error) {
     return <div className="p-4 text-red-600">Error loading posts: {error.message}</div>;

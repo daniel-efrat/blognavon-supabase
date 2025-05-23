@@ -61,89 +61,33 @@ export default function SearchableGrid({
     timeLastUpdated: "",
   })
 
-  // Update debug info - memoized function with EMPTY dependencies to break cycles
-  const updateDebugInfo = useCallback(
-    (all: Post[], filtered: Post[], page: number, query: string) => {
-      const totalPages = Math.ceil(filtered.length / postsPerPage)
-
-      const newDebugInfo = {
-        allPostsCount: all.length,
-        filteredPostsCount: filtered.length,
-        currentPage: page,
-        totalPages,
-        searchQuery: query,
-        timeLastUpdated: new Date().toISOString(),
-      }
-
-      setDebugInfo(newDebugInfo)
-      if (onDebugInfoUpdate) {
-        onDebugInfoUpdate(newDebugInfo)
-      }
-    },
-    [postsPerPage, onDebugInfoUpdate]
-  )
+  // Safe debug info update that won't cause render cycles
+  const updateDebugInfo = useCallback((all: Post[], filtered: Post[], page: number, query: string) => {
+    if (!showDevTools) return;
+    
+    const debugData = {
+      allPostsCount: all.length,
+      filteredPostsCount: filtered.length,
+      currentPage: page,
+      totalPages: Math.ceil(filtered.length / postsPerPage),
+      searchQuery: query,
+      timeLastUpdated: new Date().toISOString(),
+    }
+    setDebugInfo(debugData)
+    onDebugInfoUpdate(debugData)
+  }, [showDevTools, postsPerPage, onDebugInfoUpdate])
 
   // Load posts when initialPosts changes
   useEffect(() => {
-    async function loadPosts() {
-      try {
-        setIsLoading(true)
-        setError(null)
+    // Skip if initialPosts is empty (prevent unnecessary loading)
+    if (!initialPosts?.length) return;
 
-        console.log("[SearchableGrid] Loading posts...")
+    console.log("[SearchableGrid] Using provided posts:", initialPosts.length)
+    setAllPosts(initialPosts)
+    setFilteredPosts(initialPosts)
+    setIsLoading(false)
 
-        // If initialPosts are provided, use them directly
-        if (initialPosts && initialPosts.length > 0) {
-          console.log(
-            `[SearchableGrid] Using ${initialPosts.length} provided posts`
-          )
-          setAllPosts(initialPosts)
-          setFilteredPosts(initialPosts)
-          updateDebugInfo(initialPosts, initialPosts, 1, "")
-          setIsLoading(false)
-          return
-        }
-
-        // If no initialPosts, check the cache
-        const cachedPosts = localStorage.getItem("cachedPosts")
-        const cachedTime = localStorage.getItem("cachedTime")
-
-        if (cachedPosts && cachedTime) {
-          const timeElapsed = Date.now() - parseInt(cachedTime)
-          // Use cache if it's less than 5 minutes old
-          if (timeElapsed < 5 * 60 * 1000) {
-            console.log("[SearchableGrid] Using cached posts")
-            const posts = JSON.parse(cachedPosts)
-            setAllPosts(posts)
-            setFilteredPosts(posts)
-            updateDebugInfo(posts, posts, 1, "")
-            setIsLoading(false)
-            return
-          }
-        }
-
-        // Cache miss or expired, fetch from Supabase
-        console.log("[SearchableGrid] Fetching posts from Supabase")
-        const fetchedPosts = await getPublishedPosts()
-        console.log(`[SearchableGrid] Fetched ${fetchedPosts.length} posts`)
-
-        // Cache the results
-        localStorage.setItem("cachedPosts", JSON.stringify(fetchedPosts))
-        localStorage.setItem("cachedTime", Date.now().toString())
-
-        setAllPosts(fetchedPosts)
-        setFilteredPosts(fetchedPosts)
-        updateDebugInfo(fetchedPosts, fetchedPosts, 1, "")
-        setIsLoading(false)
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load posts'
-        console.error("Error loading posts:", err)
-        setError(errorMessage)
-        setIsLoading(false)
-      }
-    }
-
-    loadPosts()
+    updateDebugInfo(initialPosts, initialPosts, 1, "")
   }, [initialPosts, updateDebugInfo])
 
   // Handle search input change with debounce

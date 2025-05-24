@@ -146,15 +146,9 @@ export function PostCard({ post }: { post: Post }) {
           <CardFooter className="flex justify-between p-4 pt-0 text-sm text-accent">
             <span>{post.author || "Unknown author"}</span>
             <time
-              dateTime={
-                post.createdAt instanceof Date
-                  ? post.createdAt.toISOString()
-                  : new Date().toISOString()
-              }
+              dateTime={new Date(post.createdAt).toISOString()}
             >
-              {formatDate(
-                post.createdAt instanceof Date ? post.createdAt : new Date()
-              )}
+              {formatDate(post.createdAt)}
             </time>
           </CardFooter>
         </Card>

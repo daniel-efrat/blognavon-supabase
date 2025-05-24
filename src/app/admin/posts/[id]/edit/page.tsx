@@ -40,7 +40,7 @@ export default function EditPostPage() {
           ...currentPost,
           createdAt: currentPost.created_at,
           updatedAt: currentPost.updated_at,
-          featuredImage: currentPost.featured_image,
+          featuredImage: currentPost.featured_image_url, // Ensure this matches your Supabase column name
         }
         setPost(formattedPost)
 

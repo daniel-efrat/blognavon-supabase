@@ -13,16 +13,16 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
-        async get(name: string) {
+        get(name: string) {
           return cookieStore.get(name)?.value;
         },
         async set(name: string, value: string, options: CookieOptions) {
-          const store = await cookies();
-          store.set(name, value, options);
+          const cookieStoreInstance = await cookies();
+          cookieStoreInstance.set(name, value, options);
         },
         async remove(name: string, options: CookieOptions) {
-          const store = await cookies();
-          store.delete({ name, ...options });
+          const cookieStoreInstance = await cookies();
+          cookieStoreInstance.delete({ name, ...options });
         },
       },
     });

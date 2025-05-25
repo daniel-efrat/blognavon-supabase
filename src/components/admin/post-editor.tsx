@@ -331,7 +331,7 @@ export function PostEditor({
           if (!response.ok) {
             throw new Error(result.error || "Failed to update post")
           }
-        } catch (parseError) {
+        } catch (_parseError) {
           console.error("Error parsing response:", responseText)
           throw new Error(
             response.ok
@@ -368,7 +368,7 @@ export function PostEditor({
           if (!response.ok) {
             throw new Error(result.error || "Failed to create post")
           }
-        } catch (parseError) {
+        } catch (_parseError) {
           console.error("Error parsing response:", responseText)
           throw new Error(
             response.ok

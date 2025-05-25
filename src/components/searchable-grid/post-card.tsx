@@ -19,6 +19,14 @@ import { m } from "framer-motion";
 export function PostCard({ post }: { post: Post }) {
   const router = useRouter();
   const { setLoading } = useLoading();
+  const [imageError, setImageError] = React.useState(false);
+
+  React.useEffect(() => {
+    // Reset error state when the image src changes or component mounts with a new image
+    if (post.featuredImage) {
+      setImageError(false);
+    }
+  }, [post.featuredImage]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,44 +67,35 @@ export function PostCard({ post }: { post: Post }) {
               >
                 {post.featuredImage?.trim() ? (
                   <>
-                    {/* Native img tag for production reliability */}
-                    <img
-                      src={post.featuredImage}
-                      alt={post.title}
-                      className="absolute inset-0 w-full h-full object-cover z-10"
-                      loading="eager"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none"
-                        console.log(
-                          "SearchGrid: Image failed to load",
-                          post.featuredImage
-                        )
-                      }}
-                    />
-
-                    {/* Next.js Image component as backup */}
-                    <div className="absolute no-underline inset-0 z-0">
+                    {!imageError ? (
                       <Image
-                        src={post.featuredImage}
+                        src={post.featuredImage!} // Assert non-null as we're in the .trim() true branch
                         alt={post.title}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover"
                         style={{ viewTransitionName: `img-${post.id}` }}
-                        unoptimized={true}
+                        priority
+                        onLoad={() => setImageError(false)} // Reset error on successful load
+                        onError={() => {
+                          console.log(
+                            "SearchGrid: Next.js Image failed to load",
+                            post.featuredImage
+                          );
+                          setImageError(true);
+                        }}
                       />
-                    </div>
-
-                    {/* Fallback title */}
-                    <div className="absolute inset-0 flex items-center no-underline justify-center bg-muted z-[-1]">
-                      <span
-                        className="text-accent text-center px-4 font-bold"
-                        dir="rtl"
-                        lang="he"
-                      >
-                        {post.title}
-                      </span>
-                    </div>
+                    ) : (
+                      <div className="absolute inset-0 flex items-center no-underline justify-center bg-muted">
+                        <span
+                          className="text-accent text-center px-4 font-bold"
+                          dir="rtl"
+                          lang="he"
+                        >
+                          {post.title}
+                        </span>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <span className="text-accent">No image</span>

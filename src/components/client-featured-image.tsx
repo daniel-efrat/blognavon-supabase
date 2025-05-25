@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface ClientFeaturedImageProps {
   src: string
@@ -13,30 +14,21 @@ export function ClientFeaturedImage({ src, alt, title }: ClientFeaturedImageProp
   const [imageError, setImageError] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
-  // Safe mounting check to prevent hydration issues
   useEffect(() => {
-    setIsMounted(true)
-    
-    // Pre-load the image to check if it exists
-    const img = new window.Image();
-    img.src = src;
-    
-    img.onload = () => {
-      if (isMounted) setImageLoaded(true);
-    };
-    
-    img.onerror = () => {
-      if (isMounted) setImageError(true);
-    };
+    setIsMounted(true);
+    // Reset image status when src changes, to allow Next/Image to re-evaluate
+    setImageLoaded(false);
+    setImageError(false);
     
     return () => {
       setIsMounted(false);
     };
-  }, [src, isMounted]);
+  }, [src]); // Rerun when src changes, or on mount/unmount
 
   const handleLoad = () => {
     if (isMounted) {
       setImageLoaded(true);
+      setImageError(false); // Ensure error is cleared on successful load
       console.log('Blog post image loaded successfully');
     }
   }
@@ -44,6 +36,7 @@ export function ClientFeaturedImage({ src, alt, title }: ClientFeaturedImageProp
   const handleError = () => {
     if (isMounted) {
       setImageError(true);
+      setImageLoaded(false); // Ensure imageLoaded is false on error
       console.log('Blog post image failed to load');
     }
   }
@@ -54,10 +47,12 @@ export function ClientFeaturedImage({ src, alt, title }: ClientFeaturedImageProp
   return (
     <div className="relative w-full h-full">
       {/* Primary image with client-side event handlers - only rendered on client */}
-      <img
+      <Image
         src={src}
         alt={alt}
-        className="absolute inset-0 w-full h-full object-cover"
+        fill
+        sizes="100vw" // Adjust if specific constraints are known
+        className="object-cover"
         style={{ 
           zIndex: imageLoaded && !imageError ? 10 : 0,
           display: imageError ? 'none' : 'block'
@@ -65,6 +60,7 @@ export function ClientFeaturedImage({ src, alt, title }: ClientFeaturedImageProp
         loading="eager"
         onLoad={handleLoad}
         onError={handleError}
+        priority
       />
       
       {/* Add a title fallback in case image fails */}

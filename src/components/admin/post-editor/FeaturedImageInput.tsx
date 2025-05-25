@@ -4,6 +4,7 @@ import type React from "react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useRef } from "react"
+import Image from "next/image"
 
 interface FeaturedImageInputProps {
   currentImageUrl?: string | null
@@ -56,10 +57,12 @@ export function FeaturedImageInput({
         </Button>
         {imagePreviewUrl ? (
           <div className="relative h-32 w-48 overflow-hidden rounded border group">
-            <img
-              src={imagePreviewUrl}
+            <Image
+              src={imagePreviewUrl!}
               alt="תצוגה מקדימה של תמונה ראשית"
-              className={`absolute inset-0 w-full h-full object-cover ${
+              fill
+              sizes="192px"
+              className={`object-cover ${
                 isUploading ? 'opacity-50' : ''
               }`}
             />
@@ -87,10 +90,12 @@ export function FeaturedImageInput({
           </div>
         ) : currentImageUrl ? (
           <div className="relative h-32 w-48 overflow-hidden rounded border">
-            <img
-              src={currentImageUrl}
+            <Image
+              src={currentImageUrl!}
               alt="תמונה ראשית נוכחית"
-              className="absolute inset-0 w-full h-full object-cover"
+              fill
+              sizes="192px"
+              className="object-cover"
             />
           </div>
         ) : (

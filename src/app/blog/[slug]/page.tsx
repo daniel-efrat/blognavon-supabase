@@ -6,7 +6,7 @@ import { EditPostButton } from "@/components/edit-post-button";
 import { Comment } from "@/lib/types"; // Import Comment type
 import { LoadingReset } from "@/components/loading-reset";
 import { ArrowLeft, ArrowRight, Facebook, Instagram } from "lucide-react";
-import Link from "next/link";
+import { NavigationalLink } from "@/components/navigational-link";
 import { WhatsappIcon } from "@/components/svg/whatsapp";
 import { TwitterXIcon } from "@/components/svg/twitter-x";
 import { ClientFeaturedImage } from "@/components/client-featured-image";
@@ -220,24 +220,26 @@ export default async function BlogPost({ params }: PageProps) {
         <EditPostButton postId={post.id} />
         <div className="flex justify-between items-center mb-8">
           {post.previousPostSlug ? (
-            <Link
+            <NavigationalLink
               href={`/blog/${post.previousPostSlug}`}
-              className="flex gap-2 items-center text-sm underline text-accent hover:text-foreground"
+              className="flex items-center gap-2 text-accent hover:text-primary transition-colors no-underline"
+              style={{ viewTransitionName: `prev-${post.id}` }}
             >
               <ArrowRight className="w-4 h-4" />
-              לפוסט הקודם
-            </Link>
+              <span>הפוסט הקודם</span>
+            </NavigationalLink>
           ) : (
             <div /> // Placeholder to maintain layout
           )}
           {post.nextPostSlug ? (
-            <Link
+            <NavigationalLink
               href={`/blog/${post.nextPostSlug}`}
-              className="flex gap-2 items-center text-sm underline text-accent hover:text-foreground"
+              className="flex items-center gap-2 text-accent hover:text-primary transition-colors no-underline"
+              style={{ viewTransitionName: `next-${post.id}` }}
             >
-              לפוסט הבא
+              <span>הפוסט הבא</span>
               <ArrowLeft className="w-4 h-4" />
-            </Link>
+            </NavigationalLink>
           ) : (
             <div /> // Placeholder to maintain layout
           )}
@@ -383,12 +385,12 @@ export default async function BlogPost({ params }: PageProps) {
       <div className="py-12 text-center">
         <h1 className="text-2xl font-bold">שגיאה בטעינת הפוסט</h1>
         <p className="mt-2 text-accent">אירעה שגיאה בטעינת הפוסט.</p>
-        <Link
+        <NavigationalLink
           href="/"
           className="inline-block mt-4 text-primary hover:underline"
         >
           חזור לדף הבית
-        </Link>
+        </NavigationalLink>
       </div>
     );
   }

@@ -12,9 +12,9 @@ const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 export function LoadingProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const setLoading = (isLoading: boolean) => {
+  const setLoading = React.useCallback((isLoading: boolean) => {
     setIsLoading(isLoading);
-  };
+  }, []); // Add useCallback with empty dependency array
 
   return (
     <LoadingContext.Provider value={{ isLoading, setLoading }}>

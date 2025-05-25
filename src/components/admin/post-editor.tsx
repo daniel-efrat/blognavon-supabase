@@ -8,7 +8,7 @@ import {
   // updatePost, // Keep if used directly, or move to API handlers
 } from "@/lib/supabase/client"
 import type { Post } from "@/lib/types"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/lib/auth-hooks"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
@@ -37,6 +37,20 @@ interface PostFormData extends PostMetadata {
   // Add any other fields from your original formData that aren't in PostMetadata
 }
 
+// Base state for a new, empty form
+const getBaseFormData = (): PostFormData => ({
+  title: "",
+  slug: "",
+  excerpt: "",
+  content: "",
+  featuredImage: "",
+  author: "", // Always starts empty
+  status: "draft" as "draft" | "published", // Ensure type correctness
+  tags: [],
+  category: "",
+  createdAt: new Date().toISOString().split("T")[0],
+});  // Add any other fields from your original formData that aren't in PostMetadata
+
 export function PostEditor({
   post,
   previousPostId,
@@ -46,22 +60,7 @@ export function PostEditor({
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const initialFormData: PostFormData = {
-    title: post?.title || "",
-    slug: post?.slug || "",
-    excerpt: post?.excerpt || "",
-    content: cleanupHtml(post?.content || ""),
-    featuredImage: post?.featuredImage || "",
-    author: post?.author || user?.email || "",
-    status: post?.status || "draft",
-    tags: post?.tags || [],
-    category: post?.category || "",
-    createdAt: post?.createdAt
-      ? new Date(post.createdAt).toISOString().split("T")[0]
-      : new Date().toISOString().split("T")[0],
-  }
-
-  const [formData, setFormData] = useState<PostFormData>(initialFormData)
+  const [formData, setFormData] = useState<PostFormData>(getBaseFormData());
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(
     post?.featuredImage || null
@@ -69,6 +68,8 @@ export function PostEditor({
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadController, setUploadController] = useState<AbortController | null>(null)
+  const prevPostIdRef = useRef<string | undefined | null>(null);
+  const authorPreFilledRef = useRef(false);
 
   // Cleanup upload on unmount or cancel
   useEffect(() => {
@@ -79,25 +80,49 @@ export function PostEditor({
     }
   }, [uploadController])
 
-  // Effect to reset form when post prop changes (e.g. navigating between edit pages)
+  // Effect to reset form when post prop changes (e.g. navigating posts or to new post form)
   useEffect(() => {
-    setFormData({
-      title: post?.title || "",
-      slug: post?.slug || "",
-      excerpt: post?.excerpt || "",
-      content: cleanupHtml(post?.content || ""),
-      featuredImage: post?.featuredImage || "",
-      author: post?.author || user?.email || "",
-      status: post?.status || "draft",
-      tags: post?.tags || [],
-      category: post?.category || "",
-      createdAt: post?.createdAt
-        ? new Date(post.createdAt).toISOString().split("T")[0]
-        : new Date().toISOString().split("T")[0],
-    })
-    setImageFile(null)
-    setImagePreview(post?.featuredImage || null)
-  }, [post, user?.email])
+    const currentPostId = post?.id;
+    // Only reset form if the actual post ID has changed, or if switching between a post and new post form.
+    if (currentPostId !== prevPostIdRef.current) {
+      if (post) { // Editing an existing post
+        setFormData({
+          title: post.title || "",
+          slug: post.slug || "",
+          excerpt: post.excerpt || "",
+          content: cleanupHtml(post.content || ""),
+          featuredImage: post.featuredImage || "",
+          author: post.author || "", // Use post's author
+          status: post.status || "draft",
+          tags: post.tags || [],
+          category: post.category || "",
+          createdAt: post.createdAt
+            ? new Date(post.createdAt).toISOString().split("T")[0]
+            : new Date().toISOString().split("T")[0],
+        });
+        setImagePreview(post.featuredImage || null);
+      } else { // New post form
+        setFormData(getBaseFormData()); // Reset to base empty state
+        setImagePreview(null);
+        authorPreFilledRef.current = false; // Allow pre-fill for new post instance
+      }
+      setImageFile(null); // Reset image file for both new and existing post navigation
+    }
+    prevPostIdRef.current = currentPostId;
+  }, [post]); // Still depend on 'post' to trigger the check
+
+  // Effect to initialize author from user.email for new posts if not manually set
+  useEffect(() => {
+    if (!post && user?.email && !authorPreFilledRef.current) { // New post, user.email available, and not yet pre-filled
+      setFormData(prev => {
+        if (prev.author === "") { // Double check author is still empty
+          authorPreFilledRef.current = true; // Mark as pre-filled
+          return { ...prev, author: user.email! };
+        }
+        return prev;
+      });
+    }
+  }, [user?.email, post]); // Listen to user.email changes, scoped by 'post'
 
   const handleFormChange = (
     e: React.ChangeEvent<
@@ -105,7 +130,7 @@ export function PostEditor({
     >
   ) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFormData((prev) => ({ ...prev, [name as keyof PostFormData]: value }))
   }
 
   const handleContentChange = (html: string) => {

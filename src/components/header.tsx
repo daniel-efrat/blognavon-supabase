@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { useAuth } from "@/lib/auth-hooks"
 import { LazyMotion, domAnimation } from "framer-motion"
+import { useLoading } from "@/components/loading-overlay";
 
 export default function Header() {
-  const { user, isAdmin, signOut } = useAuth()
+  const { user, isAdmin, signOut } = useAuth();
+  const { setLoading } = useLoading();
   const pathname = usePathname()
 
   // Check if the current route is the landing page
@@ -43,7 +45,7 @@ export default function Header() {
                 transition={{ delay: 0.3 }}
                 layout
               >
-                <Link href="/" className="flex items-center gap-2 no-underline">
+                <Link href="/" className="flex items-center gap-2 no-underline" onClick={() => setLoading(true)}>
                   <Image
                     src="/bn.png"
                     alt="AI Blog Logo"
@@ -67,6 +69,7 @@ export default function Header() {
                   <Link
                     href="/"
                     className="text-sm font-medium transition-colors hover:text-primary no-underline"
+                    onClick={() => setLoading(true)}
                   >
                     דף הבית
                   </Link>

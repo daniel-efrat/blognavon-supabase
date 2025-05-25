@@ -12,17 +12,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatDate } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useLoading } from "@/components/loading-overlay";
 import { m } from "framer-motion";
-
-// Simple loading context to match the blog's behavior
-const useLoading = () => {
-  return {
-    setLoading: (state: boolean) => {
-      // For now just log the loading state
-      console.log(`[SearchableGrid] Loading state: ${state}`);
-    },
-  };
-};
 
 // Post card component that matches the blog post card styling
 export function PostCard({ post }: { post: Post }) {
@@ -48,6 +39,7 @@ export function PostCard({ post }: { post: Post }) {
         href={`/blog/${post.slug}`}
         className="no-underline hover:no-underline"
         onClick={handleClick}
+        target="_self"
       >
         <Card
           className="h-full overflow-hidden transition-all shadow-md border-gray-300 dark:border-none hover:shadow-lg hover:scale-[1.02] flex flex-col justify-between dark:bg-[#090A0C] bg-[#F9FAFB] card no-underline"

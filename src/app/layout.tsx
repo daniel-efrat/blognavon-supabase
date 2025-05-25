@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/header";
 import { LoadingProvider } from "@/components/loading-overlay";
+import { LoadingReset } from "@/components/loading-reset";
 import { ThemeProvider } from "next-themes";
 import { Background } from "@/components/Background";
 import Footer from "@/components/footer";
@@ -58,6 +59,7 @@ export default function RootLayout({
               <div className="fixed inset-0 opacity-10 pointer-events-none dark:opacity-20" />
               <LoadingProvider>
                 <Header />
+                <LoadingReset />
                 {children}
                 <Footer />
               </LoadingProvider>

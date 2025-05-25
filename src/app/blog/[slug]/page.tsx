@@ -213,7 +213,7 @@ export default async function BlogPost({ params }: PageProps) {
 
     return (
       <article
-        className="relative p-8 mx-auto mt-4 max-w-3xl bg-gray-50 rounded-lg shadow-md transition-all duration-300 -y-8 md:bg-gray-50/50 dark:bg-black/50 md:backdrop-blur-sm"
+        className="relative p-8 mx-auto mt-4 max-w-3xl bg-gray-50 rounded-lg shadow-md transition-all duration-300 md:bg-gray-50/50 dark:bg-black/50 md:backdrop-blur-sm"
         style={{ viewTransitionName: `post-${post.id}` }}
       >
         <LoadingReset />
@@ -258,7 +258,7 @@ export default async function BlogPost({ params }: PageProps) {
             <span>{post.author || "כותב לא ידוע"}</span>{" "}
             {/* Use author field with Hebrew fallback */}
           </div>
-          <div className="flex gap-4 items-center mt-4">
+          <div className="flex gap-4 items-center my-4">
             <a
               href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
                 `${post.title} - https://blognavon.com/blog/${resolvedParams.slug}`
@@ -301,7 +301,7 @@ export default async function BlogPost({ params }: PageProps) {
         </div>
 
         <div
-          className="overflow-hidden relative w-full rounded-lg aspect-video"
+          className="relative mt-4 w-full rounded-lg low-hidden aspect-video"
           style={{ viewTransitionName: `image-${post.id}` }}
         >
           <div

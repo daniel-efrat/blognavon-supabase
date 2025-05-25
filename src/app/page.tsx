@@ -6,11 +6,28 @@ import HeroSection from "@/components/HeroSection";
 export default async function HomePage() {
   const supabase = await createServerSupabaseClient();
 
-  const { data: rawPosts, error } = await supabase
+  // Get user session
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Check if user is admin by looking for 'admin' in app_metadata.roles
+  const roles = user?.app_metadata?.roles as string[] | undefined;
+  const isAdmin = roles?.includes('admin') ?? false;
+
+  // Base query
+  let queryBuilder = supabase
     .from("posts")
-    .select("id, title, slug, excerpt, author, featured_image_url, category, created_at, updated_at")
-    .eq("status", "published")
+    .select("id, title, slug, excerpt, author, featured_image_url, category, created_at, updated_at, status") // Added status to select
     .order("created_at", { ascending: false });
+
+  // Conditionally filter by status
+  if (!isAdmin) {
+    queryBuilder = queryBuilder.eq("status", "published");
+  } else {
+    // Admin can see published and draft posts
+    queryBuilder = queryBuilder.in("status", ["published", "draft"]);
+  }
+
+  const { data: rawPosts, error } = await queryBuilder;
 
   if (error) {
     return <div className="p-4 text-red-600">Error loading posts: {error.message}</div>;
@@ -27,7 +44,7 @@ export default async function HomePage() {
     category: post.category,
     createdAt: post.created_at,
     updatedAt: post.updated_at || post.created_at,
-    status: "published" as const,
+    status: post.status as "draft" | "published", // Use actual status from DB
     content: "",
     tags: []
   }));

@@ -19,6 +19,8 @@ import { Edit, Trash2, Eye, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { toast } from "@/components/ui/use-toast"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 interface AdminPostListProps {
   posts: PostSummary[]
@@ -134,6 +136,42 @@ export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
     }
   }
 
+  const handleStatusChange = async (postId: string, newStatus: "published" | "draft") => {
+    const originalPosts = posts.map(p => ({ ...p })); // Deep copy for potential revert
+    // Optimistically update UI
+    setPosts(prevPosts =>
+      prevPosts.map(p =>
+        p.id === postId ? { ...p, status: newStatus, updatedAt: new Date() } : p
+      )
+    );
+
+    try {
+      const { error } = await supabase
+        .from("posts")
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq("id", postId);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "סטטוס עודכן",
+        description: `סטטוס הפוסט עודכן ל: ${newStatus === "published" ? "פורסם" : "טיוטה"}`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error updating post status:", error);
+      // Revert optimistic update on error
+      setPosts(originalPosts);
+      toast({
+        title: "שגיאה בעדכון סטטוס",
+        description: "לא ניתן היה לעדכן את סטטוס הפוסט.",
+        variant: "default", // Changed from "destructive" to "default"
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end mb-4">
@@ -179,21 +217,21 @@ export function AdminPostList({ posts: initialPosts }: AdminPostListProps) {
                     {formatDate(post.createdAt)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        post.status === "published"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                          : post.status === "draft"
-                          ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-                          : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-                      }`}
-                    >
-                      {post.status === "published"
-                        ? "פורסם"
-                        : post.status === "draft"
-                        ? "טיוטה"
-                        : "ארכיון"}
-                    </span>
+                    <div className="flex items-center justify-end space-x-2">
+                      <Switch
+                        dir="ltr"
+                        id={`status-toggle-${post.id}`}
+                        checked={post.status === "draft"}
+                        onCheckedChange={(isChecked) => {
+                          handleStatusChange(post.id, isChecked ? "draft" : "published");
+                        }}
+                        aria-label={`שנה סטטוס עבור ${post.title}`}
+                        className="data-[state=checked]:bg-destructive data-[state=unchecked]:bg-accent"
+                      />
+                      <Label htmlFor={`status-toggle-${post.id}`} className="cursor-pointer min-w-[40px] text-right mr-2">
+                        {post.status === "published" ? "פורסם" : "טיוטה"}
+                      </Label>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end space-x-1 space-x-reverse">

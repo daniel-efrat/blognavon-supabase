@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         slug: data.slug,
         content: data.content,
         excerpt: data.excerpt,
-        featured_image: data.featuredImage,
+        featured_image_url: data.featuredImage,
         author: data.author,
         status: data.status,
         tags: data.tags,

@@ -1,28 +1,28 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useAuth } from "@/lib/auth-hooks"
-import type { User } from '@supabase/supabase-js'
-import { mapUserToAuthor } from '@/lib/supabase/user-utils'
-import { Button } from "./ui/button"
-import { Input } from "./ui/input"
-import { Textarea } from "./ui/textarea"
-import { getCommentsByPostId } from "@/lib/supabase/comments"
-import { Comment } from "@/lib/types"
-import { useToast } from "./ui/use-toast"
-import { formatDate } from "@/lib/utils"
-import { MessageSquare, Trash2 } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth-hooks";
+import type { User } from "@supabase/supabase-js";
+import { mapUserToAuthor } from "@/lib/supabase/user-utils";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { getCommentsByPostId } from "@/lib/supabase/comments";
+import { Comment } from "@/lib/types";
+import { useToast } from "./ui/use-toast";
+import { formatDate } from "@/lib/utils";
+import { MessageSquare, Trash2 } from "lucide-react";
 
 interface CommentFormProps {
-  postId: string  // Required for parent's handleSubmit
+  postId: string; // Required for parent's handleSubmit
   onSubmit: (
     content: string,
     username?: string,
     parentId?: string
-  ) => Promise<void>
-  parentId?: string
-  replyingTo?: string
-  onCancel?: () => void
+  ) => Promise<void>;
+  parentId?: string;
+  replyingTo?: string;
+  onCancel?: () => void;
 }
 
 function CommentForm({
@@ -32,26 +32,26 @@ function CommentForm({
   replyingTo,
   onCancel,
 }: CommentFormProps) {
-  const { user } = useAuth()
-  const [content, setContent] = useState("")
-  const [username, setUsername] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { user } = useAuth();
+  const [content, setContent] = useState("");
+  const [username, setUsername] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // postId is required for API request validation, ensuring comments are associated with the correct post
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!user || !content.trim() || !postId) return
+    e.preventDefault();
+    if (!user || !content.trim() || !postId) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      await onSubmit(content.trim(), username.trim() || undefined, parentId)
-      setContent("")
-      setUsername("")
-      onCancel?.()
+      await onSubmit(content.trim(), username.trim() || undefined, parentId);
+      setContent("");
+      setUsername("");
+      onCancel?.();
     } catch (err) {
-      console.error('Failed to submit comment:', err);
+      console.error("Failed to submit comment:", err);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
@@ -85,20 +85,20 @@ function CommentForm({
       </div>
     </form>
   ) : (
-    <div className="bg-muted p-4 rounded-lg text-center">
+    <div className="p-4 text-center rounded-lg bg-muted">
       <p className="text-accent">יש להתחבר כדי להגיב</p>
     </div>
-  )
+  );
 }
 
 interface CommentProps {
-  comment: Comment
-  onReply: (parentId: string, authorName: string) => void
-  onDelete: (commentId: string) => Promise<void>
-  user: User | null
-  replies: Comment[]
-  level?: number
-  commentHierarchy: Record<string, { comment?: Comment; replies: Comment[] }>
+  comment: Comment;
+  onReply: (parentId: string, authorName: string) => void;
+  onDelete: (commentId: string) => Promise<void>;
+  user: User | null;
+  replies: Comment[];
+  level?: number;
+  commentHierarchy: Record<string, { comment?: Comment; replies: Comment[] }>;
 }
 
 function CommentComponent({
@@ -110,22 +110,22 @@ function CommentComponent({
   level = 0,
   commentHierarchy,
 }: CommentProps) {
-  const maxLevel = 3
+  const maxLevel = 3;
 
   return (
     <div className={`space-y-4 ${level > 0 ? "mr-4 border-r pr-4" : ""}`}>
-      <div className="bg-card p-4 rounded-lg space-y-2">
+      <div className="p-4 space-y-2 rounded-lg bg-card">
         <div className="flex justify-between items-start">
           <time className="text-sm text-accent">
             {formatDate(comment.createdAt)}
           </time>
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2 items-center">
             <span className="font-medium">
-              {comment.author.username ||
-                comment.author.displayName ||
+              {comment.author?.username ||
+                comment.author?.displayName ||
                 "משתמש אנונימי"}
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex gap-1 items-center">
               {level < maxLevel && (
                 <Button
                   variant="ghost"
@@ -139,7 +139,7 @@ function CommentComponent({
                     )
                   }
                 >
-                  <MessageSquare className="h-4 w-4" />
+                  <MessageSquare className="w-4 h-4" />
                 </Button>
               )}
               {user?.id === comment.author.uid && (
@@ -148,7 +148,7 @@ function CommentComponent({
                   size="icon"
                   onClick={() => onDelete(comment.id)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               )}
             </div>
@@ -179,79 +179,81 @@ function CommentComponent({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 interface CommentSectionProps {
-  postId: string
-  initialComments: Comment[]
+  postId: string;
+  initialComments: Comment[];
 }
 
 export function CommentSection({
   postId,
   initialComments,
 }: CommentSectionProps) {
-  const { user } = useAuth()
-  const { toast } = useToast()
-  const [comments, setComments] = useState<Comment[]>(initialComments || [])
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [comments, setComments] = useState<Comment[]>(initialComments || []);
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(
     null
-  )
-  const [isLoading, setIsLoading] = useState(true)
+  );
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadComments() {
       try {
-        setIsLoading(true)
-        const loadedComments = await getCommentsByPostId(postId)
-        setComments(loadedComments)
+        setIsLoading(true);
+        const loadedComments = await getCommentsByPostId(postId);
+        setComments(loadedComments);
       } catch (err) {
-        console.error('Failed to load comments:', err);
+        console.error("Failed to load comments:", err);
         toast({
           title: "אירעה שגיאה",
           description: "לא ניתן לטעון את התגובות כרגע",
           variant: "accent2",
-        })
+        });
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    loadComments()
-  }, [postId, toast])
+    loadComments();
+  }, [postId, toast]);
 
   const commentHierarchy = comments.reduce((acc, comment) => {
     if (!comment.parentId) {
       if (!acc[comment.id]) {
-        acc[comment.id] = { comment, replies: [] }
+        acc[comment.id] = { comment, replies: [] };
       } else {
-        acc[comment.id].comment = comment
+        acc[comment.id].comment = comment;
       }
     } else {
-      const parentId = comment.parentId
+      const parentId = comment.parentId;
       if (!acc[parentId]) {
-        acc[parentId] = { replies: [comment] }
+        acc[parentId] = { replies: [comment] };
       } else {
         if (!acc[parentId].replies) {
-          acc[parentId].replies = []
+          acc[parentId].replies = [];
         }
-        acc[parentId].replies.push(comment)
+        acc[parentId].replies.push(comment);
       }
     }
-    return acc
-  }, {} as Record<string, { comment?: Comment; replies: Comment[] }>)
+    return acc;
+  }, {} as Record<string, { comment?: Comment; replies: Comment[] }>);
 
   Object.values(commentHierarchy).forEach((item) => {
     if (item.replies) {
-      item.replies.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      item.replies.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+      );
     }
-  })
+  });
 
   async function handleSubmit(
     content: string,
     username?: string,
     parentId?: string
   ) {
-    if (!user) return
+    if (!user) return;
 
     try {
       const response = await fetch("/api/comments", {
@@ -266,13 +268,13 @@ export function CommentSection({
           username,
           parentId,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to create comment")
+        throw new Error("Failed to create comment");
       }
 
-      const { commentId } = await response.json()
+      const { commentId } = await response.json();
 
       const newComment: Comment = {
         id: commentId,
@@ -291,25 +293,25 @@ export function CommentSection({
           : undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
-      }
+      };
 
-      setComments((prev) => [newComment, ...prev])
+      setComments((prev) => [newComment, ...prev]);
       toast({
         title: "תגובה נוספה בהצלחה",
         description: "התגובה שלך נוספה לפוסט",
-      })
+      });
     } catch (err) {
-      console.error('Failed to create comment:', err);
+      console.error("Failed to create comment:", err);
       toast({
         title: "אירעה שגיאה",
         description: "לא ניתן להוסיף את התגובה כרגע",
         variant: "accent2",
-      })
+      });
     }
   }
 
   async function handleDelete(commentId: string) {
-    if (!user) return
+    if (!user) return;
 
     try {
       const response = await fetch("/api/comments", {
@@ -321,10 +323,10 @@ export function CommentSection({
           commentId,
           userId: user.id,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to delete comment")
+        throw new Error("Failed to delete comment");
       }
 
       setComments(
@@ -332,23 +334,23 @@ export function CommentSection({
           (comment) =>
             comment.id !== commentId && comment.parentId !== commentId
         )
-      )
+      );
       toast({
         title: "התגובה נמחקה",
         description: "התגובה הוסרה בהצלחה",
-      })
+      });
     } catch (err) {
-      console.error('Failed to delete comment:', err);
+      console.error("Failed to delete comment:", err);
       toast({
         title: "אירעה שגיאה",
         description: "לא ניתן למחוק את התגובה כרגע",
         variant: "accent2",
-      })
+      });
     }
   }
 
   function handleReply(parentId: string, authorName: string) {
-    setReplyTo({ id: parentId, name: authorName })
+    setReplyTo({ id: parentId, name: authorName });
   }
 
   return (
@@ -362,8 +364,8 @@ export function CommentSection({
           <CommentForm
             postId={postId}
             onSubmit={async (content, username) => {
-              await handleSubmit(content, username, replyTo.id)
-              setReplyTo(null)
+              await handleSubmit(content, username, replyTo.id);
+              setReplyTo(null);
             }}
             parentId={replyTo.id}
             replyingTo={replyTo.name}
@@ -373,11 +375,11 @@ export function CommentSection({
       )}
 
       {isLoading ? (
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <p className="text-accent">טוען תגובות...</p>
         </div>
       ) : comments.length === 0 ? (
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <p className="text-accent">אין תגובות עדיין. היה הראשון להגיב!</p>
         </div>
       ) : (
@@ -385,9 +387,9 @@ export function CommentSection({
           {Object.entries(commentHierarchy)
             .filter(([, { comment }]) => comment && !comment.parentId)
             .sort((a, b) => {
-              const commentA = a[1].comment!
-              const commentB = b[1].comment!
-              return commentA.number! - commentB.number!
+              const commentA = a[1].comment!;
+              const commentB = b[1].comment!;
+              return commentA.number! - commentB.number!;
             })
             .map(
               ([id, { comment, replies }]) =>
@@ -406,5 +408,5 @@ export function CommentSection({
         </div>
       )}
     </div>
-  )
+  );
 }

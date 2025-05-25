@@ -331,6 +331,7 @@ export function PostEditor({
           if (!response.ok) {
             throw new Error(result.error || "Failed to update post")
           }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_parseError) {
           console.error("Error parsing response:", responseText)
           throw new Error(
@@ -368,6 +369,7 @@ export function PostEditor({
           if (!response.ok) {
             throw new Error(result.error || "Failed to create post")
           }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_parseError) {
           console.error("Error parsing response:", responseText)
           throw new Error(

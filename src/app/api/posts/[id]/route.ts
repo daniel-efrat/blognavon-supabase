@@ -2,10 +2,16 @@
 import { supabase as adminSupabase } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+
 import { cookies } from "next/headers";
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
+
+export async function PUT(request: Request, context: RouteContext) {
   try {
+    const params = await context.params;
     const postId = params.id;
     const cookieStore = await cookies();
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -27,7 +33,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       },
     });
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       return NextResponse.json(
@@ -66,30 +75,27 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
     if (updateError) {
       console.error("Error updating post:", updateError);
-      return NextResponse.json(
-        { error: updateError.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
     if (!updatedPost) {
       return NextResponse.json(
         { error: "Post not found or update failed" },
-        { status: 404 } 
+        { status: 404 }
       );
     }
 
-    return NextResponse.json({ id: updatedPost.id, slug: updatedPost.slug, success: true });
-
+    return NextResponse.json({
+      id: updatedPost.id,
+      slug: updatedPost.slug,
+      success: true,
+    });
   } catch (error) {
     console.error("Error in PUT /api/posts/[id] route:", error);
     let errorMessage = "Internal server error";
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

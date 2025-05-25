@@ -29,6 +29,7 @@ export async function POST(request: Request) {
       get(name: string) {
         return cookieStore.get(name)?.value
       },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       set(_name: string, _value: string, _options: CookieOptions) {
         // In Route Handlers, `cookieStore` is read-only.
         // Supabase client might try to set cookies (e.g., on token refresh).
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
         // For now, this is a no-op or you can log the attempt.
         // console.log(`Supabase client tried to set cookie in Route Handler: ${_name}`, { value: _value, options: _options });
       },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       remove(_name: string, _options: CookieOptions) {
         // Similar to set, this is a no-op for the incoming read-only cookie store.
         // console.log(`Supabase client tried to remove cookie in Route Handler: ${_name}`, { options: _options });

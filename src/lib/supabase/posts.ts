@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import type { Post } from '@/lib/types';
+import { createClient } from "@supabase/supabase-js";
+import type { Post } from "@/lib/types";
 
 // Create a Supabase client
 const supabase = createClient(
@@ -9,29 +9,29 @@ const supabase = createClient(
 
 export async function getPublishedPosts(): Promise<Post[]> {
   const { data: posts, error } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('status', 'published')
-    .order('created_at', { ascending: false });
+    .from("posts")
+    .select("*")
+    .eq("status", "published")
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('Error fetching posts:', error);
+    console.error("Error fetching posts:", error);
     throw error;
   }
 
-  return (posts || []).map(post => ({
+  return (posts || []).map((post) => ({
     id: post.id,
     title: post.title,
     slug: post.slug,
     excerpt: post.excerpt,
-    content: post.content || '',
+    content: post.content || "",
     author: post.author,
-    createdAt: new Date(post.created_at),
-    updatedAt: new Date(post.updated_at),
+    createdAt: post.created_at,
+    updatedAt: post.updated_at,
     featuredImage: post.featured_image_url,
     status: post.status,
     tags: post.tags,
-    category: post.category
+    category: post.category,
   }));
 }
 
@@ -44,32 +44,32 @@ export async function getWeeklyPosts(): Promise<Post[]> {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const sevenDaysAgoISOString = sevenDaysAgo.toISOString();
-  
+
   const { data: posts, error } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('status', 'published')
-    .gte('created_at', sevenDaysAgoISOString)
-    .order('created_at', { ascending: false });
+    .from("posts")
+    .select("*")
+    .eq("status", "published")
+    .gte("created_at", sevenDaysAgoISOString)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('Error fetching weekly posts:', error);
+    console.error("Error fetching weekly posts:", error);
     throw error;
   }
 
-  return (posts || []).map(post => ({
+  return (posts || []).map((post) => ({
     id: post.id,
     title: post.title,
     slug: post.slug,
     excerpt: post.excerpt,
-    content: post.content || '',
+    content: post.content || "",
     author: post.author,
-    createdAt: new Date(post.created_at),
-    updatedAt: new Date(post.updated_at),
+    createdAt: post.created_at,
+    updatedAt: post.updated_at,
     featuredImage: post.featured_image_url,
     status: post.status,
     tags: post.tags,
-    category: post.category
+    category: post.category,
   }));
 }
 
@@ -79,43 +79,46 @@ export async function getWeeklyPosts(): Promise<Post[]> {
  * @param limit Maximum number of results to return
  * @returns Array of matching posts
  */
-export async function searchPosts(searchQuery: string, limit: number = 10): Promise<Post[]> {
+export async function searchPosts(
+  searchQuery: string,
+  limit: number = 10
+): Promise<Post[]> {
   if (!searchQuery.trim()) {
     return [];
   }
-  
+
   // Create a search pattern with the ilike operator (case-insensitive LIKE)
   const searchPattern = `%${searchQuery}%`;
-  
+
   const { data: posts, error } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('status', 'published')
+    .from("posts")
+    .select("*")
+    .eq("status", "published")
     .or(
       `title.ilike.${searchPattern},` +
-      `content.ilike.${searchPattern},` +
-      `excerpt.ilike.${searchPattern}`
+        `content.ilike.${searchPattern},` +
+        `excerpt.ilike.${searchPattern}`
     )
-    .order('created_at', { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) {
-    console.error('Error searching posts:', error);
+    console.error("Error searching posts:", error);
     throw error;
   }
 
-  return (posts || []).map(post => ({
+  return (posts || []).map((post) => ({
     id: post.id,
     title: post.title,
     slug: post.slug,
     excerpt: post.excerpt,
-    content: post.content || '',
+    content: post.content || "",
     author: post.author,
-    createdAt: new Date(post.created_at),
-    updatedAt: new Date(post.updated_at),
+    createdAt: post.created_at,
+    updatedAt: post.updated_at,
     featuredImage: post.featured_image_url,
     status: post.status,
     tags: post.tags,
-    category: post.category
+    category: post.category,
   }));
 }

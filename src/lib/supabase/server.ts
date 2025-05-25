@@ -15,12 +15,26 @@ export function createServerSupabaseClient() {
           return cookieStore.get(name)?.value;
         },
         async set(name: string, value: string, options: CookieOptions) {
-          const cookieStore = await cookies();
-          cookieStore.set(name, value, options);
+          try {
+            const cookieStore = await cookies();
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // The `set` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions or if the cookie is non-essential.
+            // console.warn('Failed to set cookie in Server Component:', name, error);
+          }
         },
         async remove(name: string, options: CookieOptions) {
-          const cookieStore = await cookies();
-          cookieStore.delete({ name, ...options });
+          try {
+            const cookieStore = await cookies();
+            cookieStore.delete({ name, ...options });
+          } catch (error) {
+            // The `delete` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions or if the cookie is non-essential.
+            // console.warn('Failed to delete cookie in Server Component:', name, error);
+          }
         },
       },
     }

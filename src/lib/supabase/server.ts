@@ -18,22 +18,24 @@ export function createServerSupabaseClient() {
           try {
             const cookieStore = await cookies();
             cookieStore.set({ name, value, ...options });
-          } catch (error) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (_error) {
             // The `set` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
             // user sessions or if the cookie is non-essential.
-            // console.warn('Failed to set cookie in Server Component:', name, error);
+            // console.warn('Failed to set cookie in Server Component:', name, _error);
           }
         },
         async remove(name: string, options: CookieOptions) {
           try {
             const cookieStore = await cookies();
             cookieStore.delete({ name, ...options });
-          } catch (error) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          } catch (_error) {
             // The `delete` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
             // user sessions or if the cookie is non-essential.
-            // console.warn('Failed to delete cookie in Server Component:', name, error);
+            // console.warn('Failed to delete cookie in Server Component:', name, _error);
           }
         },
       },

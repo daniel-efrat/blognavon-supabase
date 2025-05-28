@@ -63,7 +63,7 @@ export default function Header() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
                 layout
-                className="hidden md:flex items-center gap-6 relative"
+                className="flex items-center gap-6 relative"
               >
                 <div className="relative">
                   <Link

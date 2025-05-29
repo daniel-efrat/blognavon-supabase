@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 export function AiPostForm() {
   return (
@@ -7,7 +7,7 @@ export function AiPostForm() {
 
       <div className="space-y-8 max-w-xl">
         <iframe
-          src="https://n8n.n8n-docker.fun/form/fae3e781-e135-4f03-a1f1-4af666b19c01"
+          src="https://n8n.n8n-docker.fun/form/293ef3f8-30b7-4b23-9b7a-679b2372ef53"
           width="100%"
           height="400"
           style={{ border: 0 }}
@@ -16,5 +16,5 @@ export function AiPostForm() {
         />
       </div>
     </div>
-  )
+  );
 }

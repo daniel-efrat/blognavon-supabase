@@ -63,7 +63,7 @@ export async function PUT(request: Request, context: RouteContext) {
         content: data.content,
         excerpt: data.excerpt,
         featured_image_url: data.featuredImage, // Ensure this matches your editor's field name
-        // author: data.author, // Usually author doesn't change on update, or handled differently
+        author: data.author, // Allow author to be updated
         status: data.status,
         tags: data.tags,
         category: data.category,

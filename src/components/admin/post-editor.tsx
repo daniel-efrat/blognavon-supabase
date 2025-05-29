@@ -353,7 +353,7 @@ export function PostEditor({
         const postDataToCreate = {
           ...formData,
           featuredImage: imageUrl,
-          author: formData.author || user.email, // Ensure author is set
+          author: formData.author, // Author value from form (pre-filled by useEffect or manually entered/cleared)
           updatedAt: new Date().toISOString(),
         }
         const response = await fetch("/api/posts", {

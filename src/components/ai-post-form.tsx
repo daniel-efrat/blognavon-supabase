@@ -7,7 +7,7 @@ export function AiPostForm() {
 
       <div className="space-y-8 max-w-xl">
         <iframe
-          src="https://n8n.n8n-docker.fun/form/293ef3f8-30b7-4b23-9b7a-679b2372ef53"
+          src="https://n8n.n8n-docker.fun/form/8b0322d7-1bd7-464b-be8c-733be6f84f91"
           width="100%"
           height="400"
           style={{ border: 0 }}
